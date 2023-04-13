@@ -42,9 +42,6 @@ class Pointing(apimodels._Table):
         pass
 
     def post(self, **kwargs):
-
-        
-
         post_keys = list(GWTM_POST_POINTING_KEYS)
         post_dict = {}
 
