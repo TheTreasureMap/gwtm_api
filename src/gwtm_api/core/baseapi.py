@@ -7,8 +7,7 @@ class api():
 
     def __init__(self, target=None, token=None):
 
-        self.base = "http://127.0.0.1:5000/api/v0"
-        #self.base = 'http://treasuremap.space/api/v0/'
+        self.base = 'http://treasuremap.space/api/v0/'
         self.target = target
 
         if token is None:
