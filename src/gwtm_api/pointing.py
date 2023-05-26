@@ -38,8 +38,18 @@ class Pointing(apimodels._Table):
 
         super().__init__(payload=selfdict)
 
+        self.sanatize_pointing()
+
     def validate(self):
         pass
+
+    def sanatize_pointing(self):
+        if self.position is not None:
+            try:
+                self.ra = float(self.position.split('(')[1].split(')')[0].split()[0])
+                self.dec = float(self.position.split('(')[1].split(')')[0].split()[1])
+            except:
+                raise Exception("Invalid position argument. Must be 'POINT (RA DEC)'.")
 
     def post(self, **kwargs):
         post_keys = list(GWTM_POST_POINTING_KEYS)
@@ -86,6 +96,8 @@ class Pointing(apimodels._Table):
             "d_json":post_dict
         }
 
+        print(r_json)
+
         api = baseapi.api(target="pointings")
         req = api._post(r_json=r_json)
 
@@ -109,14 +121,17 @@ class Pointing(apimodels._Table):
             "d_json":get_dict
         }
 
-        api = baseapi.api(target="pointings")
+        api = baseapi.api(target="pointings", base='v0')
         req = api._get(r_json=r_json, urlencode=urlencode)
 
         if req.status_code == 200:
             ret = []
             request_json = json.loads(req.text)
             for p in request_json:
-                pointing_json = json.loads(p)
+                if 'v0' in api.base:
+                    pointing_json = json.loads(p)
+                else:
+                    pointing_json = p
                 ret.append(Pointing(kwdict=pointing_json))
             return ret
         else:

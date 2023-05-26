@@ -57,6 +57,7 @@ class bandpass(IntEnum):
     BAT = 28
     HESS = 29
     WISEL = 30
+    q = 31
 
 
 class wavelength_units(IntEnum):
@@ -166,6 +167,25 @@ class _TableKeys():
                 _TableKeysField('submitterid', int, False),
                 _TableKeysField('central_wave', float, False),
                 _TableKeysField('bandwidth', float, False)
+            ]
+        },
+        {
+            "clsname":"Instrument",
+            "fields":[
+                _TableKeysField('id', int, False),
+                _TableKeysField('instrument_name', str, False),
+                _TableKeysField("nickname", str, False),
+                _TableKeysField("instrument_type", instrument_type, False),
+                _TableKeysField("datecreated", datetime.datetime, False),
+                _TableKeysField("submitterid", int, False)
+            ]
+        },
+        {
+            "clsname":"Footprint",
+            "fields":[
+                _TableKeysField('id', int, False),
+                _TableKeysField("instrumentid", int, False),
+                _TableKeysField("footprint", str, False)
             ]
         }
     ]

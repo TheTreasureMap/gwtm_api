@@ -12,6 +12,10 @@ GWTM_GET_POINTING_KEYS = [
     'energy_unit', 'frequency_regime', 'frequency_unit'
 ]
 
-GWTM_INSTRUMENT_KEYS = []
+GWTM_GET_INSTRUMENT_KEYS = [
+    'api_token', 'id', 'ids', 'name', 'names', 'type'
+]
 
 from .pointing import Pointing as Pointing
+#from .instrument import Instrument as Instrument
+#from .event_tools import *
