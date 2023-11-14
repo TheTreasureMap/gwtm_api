@@ -103,7 +103,6 @@ class Pointing(apimodels._Table):
 
         if req.status_code == 200:
             request_json = json.loads(req.text)
-            print(request_json)
         else:
             raise Exception(f"Error in Pointing.post(). Request: {req.text[0:1000]}")
 
@@ -121,7 +120,7 @@ class Pointing(apimodels._Table):
             "d_json":get_dict
         }
 
-        api = baseapi.api(target="pointings", base='v0')
+        api = baseapi.api(target="pointings", base='v1')
         req = api._get(r_json=r_json, urlencode=urlencode)
 
         if req.status_code == 200:

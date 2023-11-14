@@ -14,7 +14,7 @@ class api():
             self.token = os.getenv('GWTM_API_TOKEN')
         else:
             self.token = token
-
+        self.url = None
         self.request = None
 
 

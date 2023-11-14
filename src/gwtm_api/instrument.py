@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import healpy as hp
 
 from .core import baseapi
 from .core import apimodels
@@ -34,6 +35,7 @@ class Instrument(apimodels._Table):
 
         return proj_footprint
 
+
     @staticmethod
     def get(include_footprint=False, urlencode=False, **kwargs):
         get_keys = list(GWTM_GET_INSTRUMENT_KEYS)
@@ -47,14 +49,17 @@ class Instrument(apimodels._Table):
             "d_json":get_dict
         }
 
-        api = baseapi.api(target="instruments", base="v0")
+        api = baseapi.api(target="instruments")
         req = api._get(r_json=r_json, urlencode=urlencode)
 
         ret = []
         if req.status_code == 200:
             request_json = json.loads(req.text)
             for i in request_json:
-                instrument_json = json.loads(i)
+                if isinstance(i, str):
+                    instrument_json = json.loads(i)
+                else:
+                    instrument_json = i
                 ret.append(Instrument(kwdict=instrument_json))
         else:
             raise Exception(f"Error in Instrument.get(). Request: {req.text[0:1000]}")
@@ -72,7 +77,10 @@ class Instrument(apimodels._Table):
                 request_json = json.loads(req.text)
                 inst_footprints = []
                 for f in request_json:
-                    footprint_json = json.loads(f)
+                    if isinstance(f, str):
+                        footprint_json = json.loads(f)
+                    else:
+                        footprint_json = f
                     inst_footprints.append(Footprint(kwdict=footprint_json))
                 inst.footprint = inst_footprints
         return ret
@@ -123,6 +131,6 @@ class Footprint(apimodels._Table):
             new_vec = vec @ util.x_rot(-pos_angle) @ util.y_rot(dec) @ util.z_rot(-ra)
             new_x, new_y, new_z = new_vec.flat
             pt_ra, pt_dec = util.uvec_to_ra_dec(new_x, new_y, new_z)
-            proj_footprint.append([pt_ra, pt_dec])
+            proj_footprint.append([round(pt_ra, 3), round(pt_dec, 3)])
 
         return proj_footprint

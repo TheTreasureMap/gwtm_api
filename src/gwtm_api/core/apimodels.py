@@ -132,7 +132,7 @@ class gw_galaxy_score_type(IntEnum):
 
 
 class _TableKeysField():
-    def __init__(self, name, ftype, required, regex=None):
+    def __init__(self, name, ftype, required=False, regex=None):
         self.name = name
         self.type = ftype
         self.required = required
@@ -186,6 +186,48 @@ class _TableKeys():
                 _TableKeysField('id', int, False),
                 _TableKeysField("instrumentid", int, False),
                 _TableKeysField("footprint", str, False)
+            ]
+        },
+        {
+            "clsname":"Alert",
+            "fields":[
+                _TableKeysField("id", int),
+                _TableKeysField("graceid", str),
+                _TableKeysField("alternateid", str),
+                _TableKeysField("role", str),
+                _TableKeysField("timesent", datetime.datetime),
+                _TableKeysField("time_of_signal", datetime.datetime),
+                _TableKeysField("packet_type", int),
+                _TableKeysField("alert_type", str),
+                _TableKeysField("detectors", str),
+                _TableKeysField("far", float),
+                _TableKeysField("skymap_fits_url", str),
+                _TableKeysField("distance", float),
+                _TableKeysField("distance_error", float),
+                _TableKeysField("prob_bns", float),
+                _TableKeysField("prob_nsbh", float),
+                _TableKeysField("prob_gap", float),
+                _TableKeysField("prob_bbh", float),
+                _TableKeysField("prob_terrestrial", float),
+                _TableKeysField("prob_hasns", float),
+                _TableKeysField("prob_hasremenant", float),
+                _TableKeysField("datecreated", datetime.datetime),
+                _TableKeysField("group", str),
+                _TableKeysField("centralfreq", float),
+                _TableKeysField("duration", float),
+                _TableKeysField("avgra", float),
+                _TableKeysField("avgdec", float),
+                _TableKeysField("observing_run", str),
+                _TableKeysField("pipeline", str),
+                _TableKeysField("search", float),
+                _TableKeysField("gcn_notice_id", int),
+                _TableKeysField("ext_coinc_observatory", str),
+                _TableKeysField("ext_coinc_search", str),
+                _TableKeysField("time_difference", float),
+                _TableKeysField("time_coincidence_far", float),
+                _TableKeysField("time_sky_position_coincidence_far", float),
+                _TableKeysField("area_90", float),
+                _TableKeysField("area_50", float),
             ]
         }
     ]

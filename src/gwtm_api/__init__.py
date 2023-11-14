@@ -16,6 +16,11 @@ GWTM_GET_INSTRUMENT_KEYS = [
     'api_token', 'id', 'ids', 'name', 'names', 'type'
 ]
 
+GWTM_GET_ALERT_KEYS = [
+    'api_token', 'id', 'graceid'
+]
+
 from .pointing import Pointing as Pointing
-#from .instrument import Instrument as Instrument
-#from .event_tools import *
+from .instrument import Instrument as Instrument
+from .alert import Alert as Alert
+from .event_tools import plot_coverage
