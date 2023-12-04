@@ -219,7 +219,7 @@ class _TableKeys():
                 _TableKeysField("avgdec", float),
                 _TableKeysField("observing_run", str),
                 _TableKeysField("pipeline", str),
-                _TableKeysField("search", float),
+                _TableKeysField("search", str),
                 _TableKeysField("gcn_notice_id", int),
                 _TableKeysField("ext_coinc_observatory", str),
                 _TableKeysField("ext_coinc_search", str),

@@ -1,11 +1,19 @@
 import json
+import hashlib
 import numpy as np
 import healpy as hp
 
 from .core import baseapi
 from .core import apimodels
 from .core import util 
+from .core import tmcache
 from . import GWTM_GET_INSTRUMENT_KEYS
+
+#approximated instrument footprints are faster for computation
+APPROXIMATION_DICT = {
+    47 : 76, #ZTF
+    38 : 77, #DECAM
+}
 
 class Instrument(apimodels._Table):
     id = None
@@ -37,7 +45,7 @@ class Instrument(apimodels._Table):
 
 
     @staticmethod
-    def get(include_footprint=False, urlencode=False, **kwargs):
+    def get(include_footprint=False, approximate_footprint=True, urlencode=False, **kwargs):
         get_keys = list(GWTM_GET_INSTRUMENT_KEYS)
         get_dict = {}
 
@@ -67,9 +75,13 @@ class Instrument(apimodels._Table):
         if include_footprint:
             api = baseapi.api(target="footprints")
             for inst in ret:
+                if approximate_footprint and inst.id in APPROXIMATION_DICT.keys():
+                    inst_id = APPROXIMATION_DICT[inst.id]
+                else:
+                    inst_id = inst.id
                 r_json = { 
                     "d_json": {
-                        "id": inst.id, 
+                        "id": inst_id, 
                         "api_token": get_dict["api_token"] 
                     }
                 }
@@ -116,6 +128,7 @@ class Footprint(apimodels._Table):
             polygon.append([ra,dec])
         self.polygon = polygon
 
+
     def project(self, ra, dec, pos_angle):
         if pos_angle is None:
             pos_angle = 0.0
@@ -134,3 +147,21 @@ class Footprint(apimodels._Table):
             proj_footprint.append([round(pt_ra, 3), round(pt_dec, 3)])
 
         return proj_footprint
+
+
+    @staticmethod
+    def get_cached_footprints(graceid: str = None, instrument_id: int = None, pointings: list = None):
+        pointingids = [x.id for x in pointings]
+        hashpointingids =  hashlib.sha1(json.dumps(pointingids).encode()).hexdigest()
+        cache_name = f"footprints_{graceid}_{instrument_id}_{hashpointingids}"
+        cache = tmcache.TMCache(filename=cache_name, cache_type="json")
+        return cache.get()
+
+    @staticmethod
+    def put_cached_footprints(footprints, graceid: str = None, instrument_id: int = None, pointings: list = None):
+        pointingids = [x.id for x in pointings]
+        hashpointingids =  hashlib.sha1(json.dumps(pointingids).encode()).hexdigest()
+        cache_name = f"footprints_{graceid}_{instrument_id}_{hashpointingids}"
+        cache = tmcache.TMCache(filename=cache_name, cache_type="json")
+        cache.put(payload=footprints)
+        
