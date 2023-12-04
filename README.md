@@ -19,7 +19,7 @@ Full api documentation with detailed examples can be found at [GWTM API Document
 ```python
 import gwtm_api
 
-pointings = gwtm_api.Pointing(graceid="GW190814", instruments=["ZTF"], api_token=API_TOKEN)
+pointings = gwtm_api.Pointing.get(graceid="GW190814", instruments=["ZTF"], api_token=API_TOKEN)
 ```
 
 ### Post
@@ -47,4 +47,38 @@ batch = [
   gwtm_api.Pointing(...)
 ]
 gwtm_api.Pointing.batch_post(pointings=batch, graceid="GRACEID", api_token=API_TOKEN)
+```
+
+## Instruments
+Query for instrument information that have been submitted to the Treasure Map
+```python
+import gwtm_api
+
+instruments = gwtm_api.Instrument.get(name="ZTF", api_token=API_TOKEN)
+```
+You can pass the parameter `include_footprint=True` into the get request, and receive the polygon information for the instrument footprint.
+We've included basic polygon manipulation functionality with this footprint class as well. When combined with the pointing information you can project the footprint on the sky, and simulate reported coverage yourself.
+```python
+import gwtm_api
+
+ztf = gwtm_api.Instrument.get(name="ZTF", include_footprint=True, api_token=API_TOKEN)[0]
+ztf.project(ra, dec, pos_angle)
+```
+
+## Event Tools
+For a given GW event, you can utlize the the `event_tools` library to perform some analytics of a GW event with the data supported on the Treasure Map.
+
+### Visualizing coverage
+```python
+import gwtm_api
+
+gwtm_api.event_tools.plot_coverage(graceid="GW190814", api_token=API_TOKEN)
+```
+<img width="627" alt="image" src="https://github.com/TheTreasureMap/gwtm_api/assets/25805244/a6c0fa96-d991-46dc-a75e-472658dde873">
+
+The `plot_coverage` function allows you to pass in your own list of pointings, along with caching the queried results so you don't have to hit the API for large queries every time.
+
+```python
+pointings = gwtm_api.Pointing.get(graceid = "GW190814", instrument="ZTF", api_token=API_TOKEN, status='completed')
+gwtm_api.event_tools.plot_coverage(graceid="GW190814", api_token=API_TOKEN, pointings=pointings, cache=True)
 ```
