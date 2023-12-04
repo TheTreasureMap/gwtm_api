@@ -80,5 +80,34 @@ The `plot_coverage` function allows you to pass in your own list of pointings, a
 
 ```python
 pointings = gwtm_api.Pointing.get(graceid = "GW190814", instrument="ZTF", api_token=API_TOKEN, status='completed')
-gwtm_api.event_tools.plot_coverage(graceid="GW190814", api_token=API_TOKEN, pointings=pointings, cache=True)
+gwtm_api.event_tools.plot_coverage(
+    graceid="GW190814",
+    api_token=API_TOKEN,
+    pointings=pointings,
+    cache=True
+)
+```
+
+### Coverage Calculation
+Calculate the total probability covered for a given GW Event. You can pass in a list of pointings for the event, or it will default to all pointings for the event. Returns the total probability and total area (deg^2) covered by the list of pointings
+
+```python
+total_prob, total_area = gwtm_api.event_tools.calculate_coverage(
+    graceid="GW190814",
+    api_token=API_TOKEN,
+    pointings=pointings,
+    cache=True
+)
+```
+
+### Renormalize Skymap
+Renormalize an event's skymap based on a list of pointings (or the entire GW event's completed pointings). It takes the list of pointings and sets the overlapping skymap pixel probability to zero, then renormalizes the skymap. Returns an NDArray that can be imported into healpy
+
+```python
+renormalized_skymap = gwtm_api.event_tools.renormalize_skymap(
+    graceid="GW190814",
+    api_token=API_TOKEN,
+    pointings=pointings,
+    cache=True
+)
 ```
