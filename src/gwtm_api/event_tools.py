@@ -17,73 +17,9 @@ from .instrument import Instrument as Instrument
 from .instrument import Footprint as Footprint
 from .alert import Alert as Alert
 from .core.util import instrument_color
-#
+
 # MVP TODO'S:
-#   CACHE 
-#       PointingInfo,  
-#       Instruments and Footprint Info, 
-#       GW Contours
-#   plot legend for instruments
-#   MVP+ plot skymap as well
 #   MVP+ plot mwe info
-
-# def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
-
-#     fig = plt.figure(figsize=(9,6))
-#     ax = fig.add_subplot(111)
-#     m = Basemap(
-#         projection='moll',
-#         lon_0=alert_info.avgra,
-#         lat_0=alert_info.avgdec,
-#         resolution='c'
-#     )
-#     meridians = np.arange(0., 360., 60.)
-
-#     dec_str = {
-#         60.0:r"+60$\degree$",
-#         30.0:r"+30$\degree$",
-#         0.0:r"0$\degree$",
-#         -30.0:r"-30$\degree$",
-#         -60.0:r"-60$\degree$"
-#     }
-#     m.drawparallels(
-#         np.arange(-90., 91., 30.), 
-#         fmt=lambda dec: dec_str[dec], 
-#         fontsize=10, 
-#         labels=[True, False, False, False], 
-#         dashes=[2, 2],
-#         linewidth=0.5, 
-#         color="silver", 
-#         xoffset=2500000, 
-#         alpha=0.8
-#     )
-
-#     m.drawmeridians(
-#         meridians, 
-#         labels=[False, False, False, False], 
-#         dashes=[2, 2], 
-#         linewidth=0.5, 
-#         color="silver", 
-#         alpha=0.8
-#     )
-#     ra_labels = {
-#         300.0: "20h",
-#         240.0: "16h",
-#         180.0: "12h",
-#         120.0: "8h",
-#         60.0: "4h"
-#     }
-
-#     for mer in meridians[1:]:
-#         plt.annotate(
-#             ra_labels[mer], 
-#             xy=m(mer+8.0, -10), 
-#             xycoords='data', 
-#             color="k", 
-#             fontsize=10, 
-#             zorder=9999
-#         )
-
 
 def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
     cache=False, projection='astro hours mollweide'):
@@ -107,6 +43,7 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
     instrument_ids = list(set([x.instrumentid for x in pointings]))
     inst_footprints =  Instrument.get(ids=instrument_ids, include_footprint=True, api_token=api_token)
 
+    #set up the plot
     subplot_kw = {
         'projection': projection,
         'center': SkyCoord(alert_info.avgra, alert_info.avgdec, unit="deg")
@@ -121,7 +58,6 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
 
     for i in instrument_ids:
         polygon_arr = []
-        instrument_pointing_projected_footprints = []
         instrument_pointings = [x for x in pointings if x.instrumentid == i]
 
         if cache:
@@ -140,9 +76,6 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
         if len(polygon_arr) == 0:
             for p in instrument_pointings:
                 projected_footprint = inst_footprint.project(p.ra, p.dec, p.pos_angle)
-                instrument_pointing_projected_footprints.append(projected_footprint)
-
-            for projected_footprint in instrument_pointing_projected_footprints:
                 for ccd in projected_footprint:
                     ra_deg, dec_deg = zip(*[(coord_deg[0], coord_deg[1])
                                             for coord_deg in ccd])
@@ -165,6 +98,8 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
                 label = inst_footprint.nickname if inst_footprint.nickname is not None else inst_footprint.name
             else:
                 label = None
+
+            #cut_dateline(arr)[0]
             poly = Polygon(
                 np.asarray(arr), 
                 transform=ax.get_transform('world'),
@@ -177,33 +112,7 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
             )
             ax.add_patch(poly)
 
-    # for p in pointings:
-    #     inst_footprint = [x for x in inst_footprints if x.id == p.instrumentid][0]
-    #     projected_footprint = inst_footprint.project(p.ra, p.dec, p.pos_angle)
-        
-    #     for ccd in projected_footprint:
-    #         ra_deg, dec_deg = zip(*[(coord_deg[0], coord_deg[1])
-    #                                 for coord_deg in ccd])
-            
-    #         list_o_coords = []
-    #         for x, y in zip(ra_deg, dec_deg):
-    #              list_o_coords.append((x, y))
-    #         arr = np.asarray(list_o_coords)
-    #         #print(arr)
-    #         #print(cut_dateline(arr)[0])
-
-    #         poly = Polygon(
-    #             arr, 
-    #             transform=ax.get_transform('world'),
-    #             edgecolor=instrument_color(instrument_enumeration_dict[p.instrumentid]), 
-    #             facecolor='None', 
-    #             linewidth=0.5, 
-    #             alpha=1.0,
-    #             zorder=9900
-    #         )
-    #         ax.add_patch(poly)
-
-
+    #plot thee 90/50 contoturs
     for contour_polygon in contour_polygons:
         ra_deg, dec_deg = zip(*[(coord_deg[0], coord_deg[1])
                                 for coord_deg in contour_polygon])
