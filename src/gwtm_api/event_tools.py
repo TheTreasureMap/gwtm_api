@@ -153,7 +153,7 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
 
 def calculate_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
     cache=False, approximate=True):
-
+    DECam_id = 38
     if len(pointings) == 0 and graceid is None:
         raise Exception("Pointings list or graceid is required")
 
@@ -165,7 +165,12 @@ def calculate_coverage(api_token: str = None, graceid: str = None, pointings: li
     alert_info = Alert.get(graceid=graceid, api_token=api_token)
 
     instrument_ids = list(set([x.instrumentid for x in pointings]))
-    inst_footprints =  Instrument.get(ids=instrument_ids, include_footprint=True, api_token=api_token)
+
+    if DECam_id in instrument_ids:
+        print("Warning: DECam footprint will be automatically approximated")
+        approximate = True
+
+    inst_footprints =  Instrument.get(ids=instrument_ids, include_footprint=True, api_token=api_token, approximate_footprint=approximate)
 
     instrument_enumeration_dict = {}
     for i, iid in enumerate(instrument_ids):
@@ -223,7 +228,7 @@ def calculate_coverage(api_token: str = None, graceid: str = None, pointings: li
             ras_poly = [x[0] for x in arr][:-1]
             decs_poly = [x[1] for x in arr][:-1]
             xyzpoly = astropy.coordinates.spherical_to_cartesian(1, np.deg2rad(decs_poly), np.deg2rad(ras_poly))
-            qp = hp.query_polygon(skymap_nside,np.array(xyzpoly).T)
+            qp = hp.query_polygon(skymap_nside,np.array(xyzpoly).T, inclusive=True)
             qps.extend(qp)
 
             # qparea = hp.query_polygon(NSIDE4area, np.array(xyzpoly).T)

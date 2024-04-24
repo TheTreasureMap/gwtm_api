@@ -12,7 +12,7 @@ from . import GWTM_GET_INSTRUMENT_KEYS
 #approximated instrument footprints are faster for computation
 APPROXIMATION_DICT = {
     47 : 76, #ZTF
-    38 : 77, #DECAM
+    38 : 98, #DECAM
 }
 
 class Instrument(apimodels._Table):
