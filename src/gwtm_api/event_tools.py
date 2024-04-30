@@ -47,7 +47,7 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
     #set up the plot
     subplot_kw = {
         'projection': projection,
-        'center': SkyCoord(alert_info.avgra, alert_info.avgdec, unit="deg")
+        #'center': SkyCoord(alert_info.avgra, alert_info.avgdec, unit="deg")
     }
     fig, ax = plt.subplots(1, 1, layout="constrained", subplot_kw=subplot_kw)
     ax.grid()
