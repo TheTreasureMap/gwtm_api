@@ -172,7 +172,7 @@ class _TableKeys():
             "clsname":"Candidate",
             'fields':[
                 _TableKeysField('id', int, False),
-                _TableKeysField('graceid', str, True),
+                _TableKeysField('graceid', str, False),
                 _TableKeysField('candidate_name', str, True),
                 _TableKeysField('tns_name', str, False),
                 _TableKeysField('tns_url', str, False),
@@ -191,7 +191,7 @@ class _TableKeys():
                 _TableKeysField('energy_unit', energy_units, False),
                 _TableKeysField('frequency_regime', list, False),
                 _TableKeysField('frequency_unit', frequency_units, False),
-                _TableKeysField('associated_galaxy', str, True),
+                _TableKeysField('associated_galaxy', str, False),
                 _TableKeysField('associated_galaxy_redshift', float, False),
                 _TableKeysField('associated_galaxy_distance', float, False),
                 _TableKeysField('submitterid', int, False)

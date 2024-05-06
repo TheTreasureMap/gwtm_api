@@ -8,6 +8,7 @@ from . import GWTM_GET_CANDIDATE_KEYS, GWTM_POST_CANDIDATE_KEYS
 class Candidate(apimodels._Table):
     id: int = None
     created_date: datetime.datetime = None
+    graceid: str = None
     candidate_name: str = None
     tns_name: str = None
     tns_url: str = None
@@ -67,6 +68,8 @@ class Candidate(apimodels._Table):
             "d_json":post_dict
         }
 
+        print(post_dict)
+
         api = baseapi.api(target="candidate")
         req = api._post(r_json=r_json)
 
@@ -88,6 +91,8 @@ class Candidate(apimodels._Table):
 
         batch = []
         for p in candidates:
+            if not isinstance(p, Candidate):
+                raise Exception("Input candidate must be a list of Candidate")
             p.discovery_date = p.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
             batch.append(p.__dict__)
         
@@ -128,10 +133,10 @@ class Candidate(apimodels._Table):
             request_json = json.loads(req.text)
             for p in request_json:
                 if 'v0' in api.base:
-                    pointing_json = json.loads(p)
+                    json_value = json.loads(p)
                 else:
-                    pointing_json = p
-                ret.append(Candidate(kwdict=pointing_json))
+                    json_value = p
+                ret.append(Candidate(kwdict=json_value))
             return ret
         else:
             raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")
