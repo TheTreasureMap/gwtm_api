@@ -157,7 +157,7 @@ class _TableKeys():
                 _TableKeysField('wavelength_regime', list, False),
                 _TableKeysField('wavelength_unit', wavelength_units, False),
                 _TableKeysField('energy_regime', list, False),
-                _TableKeysField('energy_uni', energy_units, False),
+                _TableKeysField('energy_unit', energy_units, False),
                 _TableKeysField('frequency_regime', list, False),
                 _TableKeysField('frequency_unit', frequency_units, False),
                 _TableKeysField('pos_angle', float, False),
@@ -167,6 +167,34 @@ class _TableKeys():
                 _TableKeysField('submitterid', int, False),
                 _TableKeysField('central_wave', float, False),
                 _TableKeysField('bandwidth', float, False)
+            ]
+        },{
+            "clsname":"Candidate",
+            'fields':[
+                _TableKeysField('id', int, False),
+                _TableKeysField('graceid', str, True),
+                _TableKeysField('candidate_name', str, True),
+                _TableKeysField('tns_name', str, False),
+                _TableKeysField('tns_url', str, False),
+                _TableKeysField('position', str, False),
+                _TableKeysField('ra', float, False),
+                _TableKeysField('dec', float, False),
+                _TableKeysField('discovery_date', datetime.datetime, True),
+                _TableKeysField('discovery_magnitude', float, True),
+                _TableKeysField('magnitude_central_wave', float, False),
+                _TableKeysField('magnitude_bandwidth', float, False),
+                _TableKeysField('magnitude_bandpass', bandpass, False),
+                _TableKeysField('magnitude_unit', depth_unit, True), 
+                _TableKeysField('wavelength_regime', list, False),
+                _TableKeysField('wavelength_unit', wavelength_units, False),
+                _TableKeysField('energy_regime', list, False),
+                _TableKeysField('energy_unit', energy_units, False),
+                _TableKeysField('frequency_regime', list, False),
+                _TableKeysField('frequency_unit', frequency_units, False),
+                _TableKeysField('associated_galaxy', str, True),
+                _TableKeysField('associated_galaxy_redshift', float, False),
+                _TableKeysField('associated_galaxy_distance', float, False),
+                _TableKeysField('submitterid', int, False)
             ]
         },
         {
