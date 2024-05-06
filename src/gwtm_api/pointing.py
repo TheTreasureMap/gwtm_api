@@ -48,7 +48,7 @@ class Pointing(apimodels._Table):
             try:
                 self.ra = float(self.position.split('(')[1].split(')')[0].split()[0])
                 self.dec = float(self.position.split('(')[1].split(')')[0].split()[1])
-            except:
+            except:  # noqa: E722
                 raise Exception("Invalid position argument. Must be 'POINT (RA DEC)'.")
 
     def post(self, **kwargs):

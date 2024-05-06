@@ -78,5 +78,5 @@ def instrument_color(integer):
     ]
     try:
         return colorlist[integer]
-    except:
+    except:  # noqa: E722
         return COLORS[integer]

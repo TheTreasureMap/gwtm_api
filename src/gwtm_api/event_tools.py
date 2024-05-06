@@ -1,17 +1,10 @@
 from matplotlib import pyplot as plt
-from matplotlib.patches import Circle, Wedge, Polygon
+from matplotlib.patches import Polygon
 import numpy as np
 import astropy
-from astropy.coordinates import SkyCoord
 
 import healpy as hp
-from ligo.skymap import distance
 from ligo.skymap.postprocess.util import find_greedy_credible_levels
-import ligo.skymap.plot
-from ligo.skymap.plot.poly import cut_dateline
-from ligo.gracedb.rest import GraceDb
-import matplotlib
-from matplotlib import colors
 
 from .pointing import Pointing as Pointing
 from .instrument import Instrument as Instrument
@@ -36,9 +29,6 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
 
     #fetch contour data
     contour_polygons = Alert.fetch_contours(graceid=graceid, api_token=api_token, cache=cache)
-
-    #query for latest alert information
-    alert_info = Alert.get(graceid=graceid, api_token=api_token)
 
     #query for footprint info
     instrument_ids = list(set([x.instrumentid for x in pointings]))
@@ -162,8 +152,6 @@ def calculate_coverage(api_token: str = None, graceid: str = None, pointings: li
 
     skymap = Alert.fetch_skymap(graceid=graceid, api_token=api_token, cache=cache)
 
-    alert_info = Alert.get(graceid=graceid, api_token=api_token)
-
     instrument_ids = list(set([x.instrumentid for x in pointings]))
 
     if DECam_id in instrument_ids:
@@ -176,14 +164,9 @@ def calculate_coverage(api_token: str = None, graceid: str = None, pointings: li
     for i, iid in enumerate(instrument_ids):
         instrument_enumeration_dict[iid] = i
 
-    time_of_signal = alert_info.time_of_signal
     skymap_nside = hp.npix2nside(len(skymap))
 
-    areas = []
-    times = []
-    probs = []
     qps = []
-    qpsarea=[]
     NSIDE4area = 512 #this gives pixarea of 0.013 deg^2 per pixel
     pixarea = hp.nside2pixarea(NSIDE4area, degrees=True)
 
@@ -264,8 +247,6 @@ def renormalize_skymap(api_token: str = None, graceid: str = None, pointings: li
 
     skymap = Alert.fetch_skymap(graceid=graceid, api_token=api_token, cache=cache)
 
-    alert_info = Alert.get(graceid=graceid, api_token=api_token)
-
     instrument_ids = list(set([x.instrumentid for x in pointings]))
     inst_footprints =  Instrument.get(ids=instrument_ids, include_footprint=True, api_token=api_token)
 
@@ -273,7 +254,6 @@ def renormalize_skymap(api_token: str = None, graceid: str = None, pointings: li
     for i, iid in enumerate(instrument_ids):
         instrument_enumeration_dict[iid] = i
 
-    time_of_signal = alert_info.time_of_signal
     skymap_nside = hp.npix2nside(len(skymap))
 
     qps = []

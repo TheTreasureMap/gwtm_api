@@ -1,7 +1,6 @@
 import json
 import hashlib
 import numpy as np
-import healpy as hp
 
 from .core import baseapi
 from .core import apimodels
