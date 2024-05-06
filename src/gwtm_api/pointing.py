@@ -87,6 +87,8 @@ class Pointing(apimodels._Table):
 
         batch_pointings = []
         for p in pointings:
+            if not isinstance(p, Pointing):
+                raise Exception("Input pointing must be a list of Pointings")
             p.time = p.time.strftime("%Y-%m-%dT%H:%M:%S.%f")
             batch_pointings.append(p.__dict__)
         
