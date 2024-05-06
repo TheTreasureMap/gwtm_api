@@ -52,7 +52,7 @@ class TMCache():
             with open(self.cache_path, "r") as input_file:
                 payload = json.load(input_file)
             return payload
-        except:
+        except:  # noqa: E722
             raise Exception("Error reading json cache")
 
 
@@ -60,7 +60,7 @@ class TMCache():
         try:
             skymap = hp.read_map(self.cache_path)
             return skymap
-        except:
+        except:  # noqa: E722
             raise Exception("Error in reading cached fits file")
 
 
@@ -68,12 +68,12 @@ class TMCache():
         try:
             with open(self.cache_path, "w") as output_file:
                 json.dump(payload, output_file)
-        except:
+        except:  # noqa: E722
             raise Exception("Error in writing payload cache to json")
 
     
     def _put_cached_fits(self, payload, **kwargs):
         try:
             hp.write_map(self.cache_path, payload, **kwargs)
-        except:
+        except:  # noqa: E722
             raise Exception("Error in writing skymap cache")

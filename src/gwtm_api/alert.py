@@ -1,11 +1,9 @@
 import json
-import numpy as np
 import healpy as hp
 import tempfile
 
 from .core import baseapi
 from .core import apimodels
-from .core import util 
 from .core.tmcache import TMCache
 from . import GWTM_GET_ALERT_KEYS
 
@@ -141,7 +139,7 @@ class Alert(apimodels._Table):
         if cache:
             try:
                 graceid = get_dict["graceid"]
-            except:
+            except:  # noqa: E722
                 raise Exception("Must include \"graceid\" in Alert.fetch_contour GET")
             cache_name = f"{graceid}_gw_contour.json"
             contour_cache = TMCache(filename=cache_name, cache_type="json")
@@ -151,7 +149,6 @@ class Alert(apimodels._Table):
             api = baseapi.api(target="gw_contour")
             req = api._get(r_json=r_json, urlencode=urlencode)
 
-            ret = []
             if req.status_code == 200:
                 request_json = json.loads(req.text)
             else:
@@ -182,7 +179,7 @@ class Alert(apimodels._Table):
         if cache:
             try:
                 graceid = get_dict["graceid"]
-            except:
+            except:  # noqa: E722
                 raise Exception("Must include \"graceid\" in Alert.fetch_contour GET")
             cache_name = f"{graceid}_gw_skymap.fits"
             skymap_cache = TMCache(filename=cache_name, cache_type="fits")
@@ -192,7 +189,6 @@ class Alert(apimodels._Table):
             api = baseapi.api(target="gw_skymap")
             req = api._get(r_json=r_json, urlencode=urlencode)
 
-            ret = []
             if req.status_code == 200:
                 with tempfile.NamedTemporaryFile() as _tmp_file:
                     _tmp_file.write(req.content)

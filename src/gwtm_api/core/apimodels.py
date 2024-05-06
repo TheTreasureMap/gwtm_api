@@ -31,7 +31,7 @@ class bandpass(IntEnum):
     B = 2
     V = 3
     R = 4
-    I = 5
+    I = 5  # noqa: E741
     J = 6
     H = 7
     K = 8
@@ -264,15 +264,15 @@ class _TableValidation():
                         try:
                             dateval = datetime.datetime.strptime(value, DATETIME_FORMAT1)
                             self.valid_inst[key] = dateval
-                        except:
+                        except:  # noqa: E722
                             dateval = datetime.datetime.strptime(value, DATETIME_FORMAT2)
                             self.valid_inst[key] = dateval
 
-                    elif (mf.type == float or mf.type == int) and (value == None or value == ''):
+                    elif (mf.type == float or mf.type == int) and (value is None or value == ''):
                         self.valid_inst[key] = None
 
                     elif mf.type in ENUM_TYPES:
-                        if isinstance(value, str) and (value != None and value != ""):
+                        if isinstance(value, str) and (value is not None and value != ""):
                             eval = mf.type[value].name
                             self.valid_inst[key] = eval
                         if isinstance(value, int):
@@ -280,9 +280,9 @@ class _TableValidation():
                             self.valid_inst[key] = eval
                             
                     else:
-                        tmpval = mf.type(value)
+                        _ = mf.type(value)
                         self.valid_inst[key] = mf.type(value)
-                except:
+                except:  # noqa: E722
                     print(payload)
                     self.errors.append('Field: {}. Value: {}. Value Type: {}. Intended Type: {}'.format(key, value, type(value), mf.type))
                  
