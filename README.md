@@ -15,14 +15,14 @@ python -m pip install -e .
 
 ## Pointings:
 Full api documentation with detailed examples can be found at [GWTM API Documentation](http://treasuremap.space/documentation).
-### Get
+### GET
 ```python
 import gwtm_api
 
 pointings = gwtm_api.Pointing.get(graceid="GW190814", instruments=["ZTF"], api_token=API_TOKEN)
 ```
 
-### Post
+### POST
 Submit single, or list of `gwtm_api.Pointing` objects.
 ```python
 import gwtm_api
@@ -47,6 +47,41 @@ batch = [
   gwtm_api.Pointing(...)
 ]
 gwtm_api.Pointing.batch_post(pointings=batch, graceid="GRACEID", api_token=API_TOKEN)
+```
+
+## Candidates
+Get and Post Event Candidates through the API:
+### GET
+```python
+import gwtm_api
+from datetime import datetime
+
+candidates = gwtm_api.Candidate.get(graceid="GW190814", api_token=API_TOKEN)
+```
+### POST
+Submit single, or list of `gwtm_api.Candidate` objects.
+```python
+import gwtm_api
+
+#submit single
+candidate = gwtm_api.Candidate(
+    ra=15,
+    dec=-24,
+    discovery_date=datetime.datetime.now(),
+    discovery_magnitude = 18,
+    magnitude_bandpass = "r",
+    magnitude_unit = "ab_mag",
+    associated_galaxy = "some galaxy name",
+    associated_galaxy_redshift = 0.3
+)
+candidate.post(graceid="GRACEID", api_token=API_TOKEN)
+
+#submit list
+batch = [
+  gwtm_api.Candidate(...),
+  gwtm_api.Candidate(...)
+]
+gwtm_api.Pointing.batch_post(candidates=batch, graceid="GRACEID", api_token=API_TOKEN)
 ```
 
 ## Instruments
