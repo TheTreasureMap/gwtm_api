@@ -68,8 +68,6 @@ class Candidate(apimodels._Table):
             "d_json":post_dict
         }
 
-        print(post_dict)
-
         api = baseapi.api(target="candidate")
         req = api._post(r_json=r_json)
 
