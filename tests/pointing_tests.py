@@ -23,24 +23,24 @@ def get_pointing_test():
     #   energy_regimes
 
     #testing graceids
-    #pointings = gwtm_api.Pointing.get(graceids=["GW190814", "S190425z"], api_token=API_TOKEN)
+    pointings = gwtm_api.Pointing.get(graceids=["GW190814", "S190425z"], api_token=API_TOKEN,debug=True)
     
-    #users_t = [96, 2, 3, 5, 6, 7, 69, 73, 106, 57, 93, 'alkdjf']
-    #pointings = gwtm_api.Pointing.get(users=users_t, api_token=API_TOKEN)
+    users_t = [96, 2, 3, 5, 6, 7, 69, 73, 106, 57, 93, 'alkdjf']
+    pointings = gwtm_api.Pointing.get(users=users_t, api_token=API_TOKEN, debug=True)
 
-    #statuses = ['completed']
-    #pointings = gwtm_api.Pointing.get(status=statuses, graceid="GW190814", api_token=API_TOKEN)
+    # statuses = ['completed']
+    # pointings = gwtm_api.Pointing.get(status=statuses, graceid="GW190814", api_token=API_TOKEN)
 
-    #bands = ['XRT', 'u', 'V']
-    #pointings = gwtm_api.Pointing.get(bands=bands, graceid="GW190814", api_token=API_TOKEN)
+    # bands = ['XRT', 'u', 'V']
+    # pointings = gwtm_api.Pointing.get(bands=bands, graceid="GW190814", api_token=API_TOKEN)
 
-    #ids = [3811, 3812, 3813, 3814, 3815, 3816, 3817, 3818, 3819, 3820, 3821, 3822, 3823, 3824, 3825, 3826, 3827, 3828, 3829, 3830]
-    #pointings = gwtm_api.Pointing.get(ids=ids, graceid="GW190814", api_token=API_TOKEN)
-    #pointings = gwtm_api.Pointing.get(id=ids[0], graceid="GW190814", api_token=API_TOKEN)
+    # ids = [3811, 3812, 3813, 3814, 3815, 3816, 3817, 3818, 3819, 3820, 3821, 3822, 3823, 3824, 3825, 3826, 3827, 3828, 3829, 3830]
+    # pointings = gwtm_api.Pointing.get(ids=ids, graceid="GW190814", api_token=API_TOKEN)
+    # pointings = gwtm_api.Pointing.get(id=ids[0], graceid="GW190814", api_token=API_TOKEN)
 
-    #pointings = gwtm_api.Pointing.get(wavelength_regime=["0", 45], wavelength_unit='nanometer', graceid='GW190814', api_token=API_TOKEN)
-    #pointings = gwtm_api.Pointing.get(energy_regime="[0,5200]", energy_unit='keV', graceid='GW190814', api_token=API_TOKEN)
-    pointings = gwtm_api.Pointing.get(frequency_regime=[0, 500], frequency_unit='THz', graceid='GW190814', api_token=API_TOKEN, urlencode=True)
+    # pointings = gwtm_api.Pointing.get(wavelength_regime=["0", 45], wavelength_unit='nanometer', graceid='GW190814', api_token=API_TOKEN)
+    # pointings = gwtm_api.Pointing.get(energy_regime="[0,5200]", energy_unit='keV', graceid='GW190814', api_token=API_TOKEN)
+    # pointings = gwtm_api.Pointing.get(frequency_regime=[0, 500], frequency_unit='THz', graceid='GW190814', api_token=API_TOKEN, urlencode=True)
     print(len(pointings))
 
     for p in pointings[0:2]:
@@ -49,6 +49,7 @@ def get_pointing_test():
     return 
 
 def post_pointing_test():
+
     pointing = gwtm_api.Pointing(
         ra=15,
         dec=-24,
@@ -61,7 +62,7 @@ def post_pointing_test():
         band = 'r'
     )
 
-    pointing.post(graceid='TEST_EVENT', api_token=API_TOKEN)
+    pointing.post(graceid='MS181101ab', api_token=API_TOKEN, base="http://127.0.0.1:5000/api/")
     pointing.dump()
 
 def batch_pointing_post():
@@ -90,8 +91,8 @@ def batch_pointing_post():
         )
     ]
 
-    gwtm_api.Pointing.batch_post(pointings=batch, graceid='TEST_EVENT', api_token=API_TOKEN)
+    gwtm_api.Pointing.batch_post(pointings=batch, graceid='MS181101ab', api_token=API_TOKEN)
 
-#get_pointing_test()
-post_pointing_test()
-batch_pointing_post()
+get_pointing_test()
+#post_pointing_test()
+#batch_pointing_post()

@@ -1,8 +1,6 @@
 import datetime
+from dateutil.parser import parse as date_parse
 from enum import IntEnum
-
-DATETIME_FORMAT1 = "%Y-%m-%dT%H:%M:%S.%f"
-DATETIME_FORMAT2 = "%Y-%m-%dT%H:%M:%S"
 
 class depth_unit(IntEnum):
     ab_mag = 1
@@ -289,12 +287,8 @@ class _TableValidation():
                         self.valid_inst[key] = value
 
                     elif mf.type == datetime.datetime:
-                        try:
-                            dateval = datetime.datetime.strptime(value, DATETIME_FORMAT1)
-                            self.valid_inst[key] = dateval
-                        except:  # noqa: E722
-                            dateval = datetime.datetime.strptime(value, DATETIME_FORMAT2)
-                            self.valid_inst[key] = dateval
+                        dateval = date_parse(value)
+                        self.valid_inst[key] = dateval
 
                     elif (mf.type == float or mf.type == int) and (value is None or value == ''):
                         self.valid_inst[key] = None
@@ -306,12 +300,10 @@ class _TableValidation():
                         if isinstance(value, int):
                             eval = mf.type(value).name
                             self.valid_inst[key] = eval
-                            
                     else:
                         _ = mf.type(value)
                         self.valid_inst[key] = mf.type(value)
                 except:  # noqa: E722
-                    print(payload)
                     self.errors.append('Field: {}. Value: {}. Value Type: {}. Intended Type: {}'.format(key, value, type(value), mf.type))
                  
         self.valid = len(self.errors) == 0

@@ -5,9 +5,8 @@ import urllib.parse
 
 class api():
 
-    def __init__(self, target=None, token=None, base='v1'):
-
-        self.base = f'https://treasuremap.space/api/{base}'
+    def __init__(self, target=None, token=None, base='https://treasuremap.space/api/', api_version='v1'):
+        self.base = f'{base}{api_version}'
         self.target = target
 
         if token is None:
