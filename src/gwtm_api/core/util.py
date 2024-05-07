@@ -20,7 +20,7 @@ COLORS = [
 	]
 
 def non_none_locals(locals: dict) -> dict:
-    ignore_locals = ["self", "__class__", "base", "api_version", "urlencode", "debug"]
+    ignore_locals = ["self", "__class__", "base", "api_version", "urlencode", "debug", "cache"]
 
     non_none_keys = [key for key, value in locals.items() if value is not None and key not in ignore_locals]
     selfdict = {}

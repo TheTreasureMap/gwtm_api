@@ -10,10 +10,6 @@ GWTM_GET_CANDIDATE_KEYS = [
     'associated_galaxy_distance_gt', 'associated_galaxy_distance_lt'
 ]
 
-GWTM_GET_INSTRUMENT_KEYS = [
-    'api_token', 'id', 'ids', 'name', 'names', 'type'
-]
-
 GWTM_GET_ALERT_KEYS = [
     'api_token', 'id', 'graceid'
 ]

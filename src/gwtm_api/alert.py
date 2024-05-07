@@ -1,3 +1,4 @@
+import datetime
 import json
 import healpy as hp
 import tempfile
@@ -5,71 +6,103 @@ import tempfile
 from .core import baseapi
 from .core import apimodels
 from .core.tmcache import TMCache
-from . import GWTM_GET_ALERT_KEYS
+from .core import util
 
 class Alert(apimodels._Table):
-    id = None
-    graceid = None
-    alternateid = None
-    role = None
-    timesent = None
-    time_of_signal = None
-    packet_type = None
-    alert_type = None
-    detectors = None
-    description = None
-    far = None
-    skymap_fits_url = None
-    distance = None
-    distance_error = None
-    prob_bns = None
-    prob_nsbh = None
-    prob_gap = None
-    prob_bbh = None
-    prob_terrestrial = None
-    prob_hasns = None
-    prob_hasremenant = None
-    datecreated = None
-    group = None
-    centralfreq = None
-    duration = None
-    avgra = None
-    avgdec = None
-    observing_run = None
-    pipeline = None
-    search = None
-    gcn_notice_id = None
-    ivorn = None
-    ext_coinc_observatory = None
-    ext_coinc_search = None
-    time_difference = None
-    time_coincidence_far = None
-    time_sky_position_coincidence_far = None
-    area_90 = None
-    area_50 = None
+    id: int
+    graceid: str
+    alternateid: str
+    role: str
+    timesent: datetime.datetime
+    time_of_signal: datetime.datetime
+    packet_type: int
+    alert_type: str
+    detectors: str
+    description: float
+    far: float
+    skymap_fits_url: str
+    distance: float
+    distance_error: float
+    prob_bns: float
+    prob_nsbh: float
+    prob_gap: float
+    prob_bbh: float
+    prob_terrestrial: float
+    prob_hasns: float
+    prob_hasremenant: float
+    datecreated: datetime.datetime
+    group: float
+    centralfreq: float
+    duration: float
+    avgra: float
+    avgdec : float
+    observing_run: str
+    pipeline: str
+    search: str
+    gcn_notice_id: int
+    ivorn: str
+    ext_coinc_observatory: str
+    ext_coinc_search: str
+    time_difference: float
+    time_coincidence_far: float
+    time_sky_position_coincidence_far: float
+    area_90: float
+    area_50: float
 
-    def __init__(self, kwdict=None, **kwargs):
+    def __init__(self, 
+            id: int = None,
+            graceid: str = None,
+            alternateid: str = None,
+            role: str = None,
+            timesent: datetime.datetime = None,
+            time_of_signal: datetime.datetime = None,
+            packet_type: int = None,
+            alert_type: str = None,
+            detectors: str = None,
+            description: float = None,
+            far: float = None,
+            skymap_fits_url: str = None,
+            distance: float = None,
+            distance_error: float = None,
+            prob_bns: float = None,
+            prob_nsbh: float = None,
+            prob_gap: float = None,
+            prob_bbh: float = None,
+            prob_terrestrial: float = None,
+            prob_hasns: float = None,
+            prob_hasremenant: float = None,
+            datecreated: datetime.datetime = None,
+            group: float = None,
+            centralfreq: float = None,
+            duration: float = None,
+            avgra: float = None,
+            avgdec : float = None,
+            observing_run: str = None,
+            pipeline: str = None,
+            search: str = None,
+            gcn_notice_id: int = None,
+            ivorn: str = None,
+            ext_coinc_observatory: str = None,
+            ext_coinc_search: str = None,
+            time_difference: float = None,
+            time_coincidence_far: float = None,
+            time_sky_position_coincidence_far: float = None,
+            area_90: float = None,
+            area_50: float = None,
+            kwdict: dict = None
+        ):
 
         if kwdict is not None:
             selfdict = kwdict
         else:
-            selfdict = kwargs
+            selfdict = util.non_none_locals(locals=locals())
 
         super().__init__(payload=selfdict)
 
-
-    def validate(self):
-        pass
-
-
     @staticmethod
-    def get(urlencode=False, **kwargs):
-        get_keys = list(GWTM_GET_ALERT_KEYS)
-        get_dict = {}
+    def get(api_token: str, id: int = None, graceid: str = None, urlencode=False):
 
-        get_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in get_keys
-        )
+        get_dict = util.non_none_locals(locals=locals())
 
         r_json = {
             "d_json":get_dict
@@ -92,13 +125,9 @@ class Alert(apimodels._Table):
 
 
     @staticmethod
-    def get_all(urlencode=False, **kwargs):
-        get_keys = list(GWTM_GET_ALERT_KEYS)
-        get_dict = {}
+    def get_all(api_token: str, id: int = None, graceid: str = None, urlencode=False):
 
-        get_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in get_keys
-        )
+        get_dict = util.non_none_locals(locals=locals())
 
         r_json = {
             "d_json":get_dict
@@ -123,13 +152,9 @@ class Alert(apimodels._Table):
 
 
     @staticmethod
-    def fetch_contours(urlencode=False, cache=False, **kwargs):
-        get_keys = list(GWTM_GET_ALERT_KEYS)
-        get_dict = {}
+    def fetch_contours(api_token: str, id: int = None, graceid: str = None, urlencode=False, cache=False):
 
-        get_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in get_keys
-        )
+        get_dict = util.non_none_locals(locals=locals())
 
         r_json = {
             "d_json":get_dict
@@ -137,10 +162,6 @@ class Alert(apimodels._Table):
 
         request_json = None
         if cache:
-            try:
-                graceid = get_dict["graceid"]
-            except:  # noqa: E722
-                raise Exception("Must include \"graceid\" in Alert.fetch_contour GET")
             cache_name = f"{graceid}_gw_contour.json"
             contour_cache = TMCache(filename=cache_name, cache_type="json")
             request_json = contour_cache.get()
@@ -162,14 +183,11 @@ class Alert(apimodels._Table):
             contour_polygons.extend(contour['geometry']['coordinates'])
         return contour_polygons
 
-    @staticmethod
-    def fetch_skymap(urlencode=False, cache=False, **kwargs):
-        get_keys = list(GWTM_GET_ALERT_KEYS)
-        get_dict = {}
 
-        get_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in get_keys
-        )
+    @staticmethod
+    def fetch_skymap(api_token: str, id: int = None, graceid: str = None, urlencode=False, cache=False):
+
+        get_dict = util.non_none_locals(locals=locals())
 
         r_json = {
             "d_json":get_dict
@@ -177,10 +195,6 @@ class Alert(apimodels._Table):
 
         request_map = None
         if cache:
-            try:
-                graceid = get_dict["graceid"]
-            except:  # noqa: E722
-                raise Exception("Must include \"graceid\" in Alert.fetch_contour GET")
             cache_name = f"{graceid}_gw_skymap.fits"
             skymap_cache = TMCache(filename=cache_name, cache_type="fits")
             request_map = skymap_cache.get()

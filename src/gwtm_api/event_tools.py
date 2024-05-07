@@ -1,3 +1,4 @@
+import ligo.skymap.plot  # noqa: F401
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
 import numpy as np
@@ -11,9 +12,6 @@ from .instrument import Instrument as Instrument
 from .instrument import Footprint as Footprint
 from .alert import Alert as Alert
 from .core.util import instrument_color
-
-# MVP TODO'S:
-#   MVP+ plot mwe info
 
 def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
     cache=False, projection='astro hours mollweide'):
