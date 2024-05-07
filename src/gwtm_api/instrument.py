@@ -1,101 +1,19 @@
+import datetime
 import json
 import hashlib
+from typing import List
 import numpy as np
 
 from .core import baseapi
 from .core import apimodels
 from .core import util 
 from .core import tmcache
-from . import GWTM_GET_INSTRUMENT_KEYS
 
 #approximated instrument footprints are faster for computation
 APPROXIMATION_DICT = {
     47 : 76, #ZTF
     38 : 98, #DECAM
 }
-
-class Instrument(apimodels._Table):
-    id = None
-    footprint = None
-
-    def __init__(self, kwdict=None, **kwargs):
-
-        if kwdict is not None:
-            selfdict = kwdict
-        else:
-            selfdict = kwargs
-
-        super().__init__(payload=selfdict)
-
-
-    def validate(self):
-        pass
-
-    
-    def project(self, ra, dec, pos_angle):
-        if self.footprint is None:
-            raise Exception("Footprint Polygon is not included")
-        
-        proj_footprint = []
-        for ccd in self.footprint:
-            proj_footprint.append(ccd.project(ra, dec, pos_angle))
-
-        return proj_footprint
-
-
-    @staticmethod
-    def get(include_footprint=False, approximate_footprint=True, urlencode=False, **kwargs):
-        get_keys = list(GWTM_GET_INSTRUMENT_KEYS)
-        get_dict = {}
-
-        get_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in get_keys
-        )
-
-        r_json = {
-            "d_json":get_dict
-        }
-
-        api = baseapi.api(target="instruments")
-        req = api._get(r_json=r_json, urlencode=urlencode)
-
-        ret = []
-        if req.status_code == 200:
-            request_json = json.loads(req.text)
-            for i in request_json:
-                if isinstance(i, str):
-                    instrument_json = json.loads(i)
-                else:
-                    instrument_json = i
-                ret.append(Instrument(kwdict=instrument_json))
-        else:
-            raise Exception(f"Error in Instrument.get(). Request: {req.text[0:1000]}")
-        
-        if include_footprint:
-            api = baseapi.api(target="footprints")
-            for inst in ret:
-                if approximate_footprint and inst.id in APPROXIMATION_DICT.keys():
-                    inst_id = APPROXIMATION_DICT[inst.id]
-                else:
-                    inst_id = inst.id
-                r_json = { 
-                    "d_json": {
-                        "id": inst_id, 
-                        "api_token": get_dict["api_token"] 
-                    }
-                }
-                req = api._get(r_json=r_json)
-                request_json = json.loads(req.text)
-                inst_footprints = []
-                for f in request_json:
-                    if isinstance(f, str):
-                        footprint_json = json.loads(f)
-                    else:
-                        footprint_json = f
-                    inst_footprints.append(Footprint(kwdict=footprint_json))
-                inst.footprint = inst_footprints
-        return ret
-    
 
 class Footprint(apimodels._Table):
     id = None
@@ -116,6 +34,38 @@ class Footprint(apimodels._Table):
     def __repr__(self) -> str:
         return str(self.polygon)
 
+ 
+    @staticmethod
+    def get(api_token: str, instrumentid: int, approximate_footprint: bool = True):
+
+        api = baseapi.api(target="footprints")
+
+        if approximate_footprint and instrumentid in APPROXIMATION_DICT.keys():
+            inst_id = APPROXIMATION_DICT[instrumentid]
+        else:
+            inst_id = instrumentid
+
+        get_dict = {
+            "id": inst_id,
+            "api_token": api_token
+        }
+
+        r_json = { 
+            "d_json": get_dict
+        }
+
+        req = api._get(r_json=r_json)
+        request_json = json.loads(req.text)
+        inst_footprints = []
+        for f in request_json:
+            if isinstance(f, str):
+                footprint_json = json.loads(f)
+            else:
+                footprint_json = f
+            inst_footprints.append(Footprint(kwdict=footprint_json))
+
+        return inst_footprints
+
 
     def sanatize_polygon(self):
         sanitized = self.footprint.strip('POLYGON ').strip(')(').split(',')
@@ -128,7 +78,7 @@ class Footprint(apimodels._Table):
         self.polygon = polygon
 
 
-    def project(self, ra, dec, pos_angle):
+    def project(self, ra: float, dec: float, pos_angle: float):
         if pos_angle is None:
             pos_angle = 0.0
 
@@ -163,4 +113,73 @@ class Footprint(apimodels._Table):
         cache_name = f"footprints_{graceid}_{instrument_id}_{hashpointingids}"
         cache = tmcache.TMCache(filename=cache_name, cache_type="json")
         cache.put(payload=footprints)
+
+
+class Instrument(apimodels._Table):
+
+    def __init__(
+        self, 
+        id: int = None, 
+        instrument_name: str = None, 
+        instrument_type: apimodels.instrument_type = None,
+        datecreated: datetime.datetime = None, 
+        submitterid: int = None, 
+        nickname: str = None,
+        footprint: List[Footprint] = None, 
+        kwdict=None
+    ):
+
+        if kwdict is not None:
+            selfdict = kwdict
+        else:
+            selfdict = util.non_none_locals(locals=locals())
+
+        super().__init__(payload=selfdict)
+
+    
+    def project(self, ra: float, dec: float, pos_angle: float):
+        if self.footprint is None:
+            raise Exception("Footprint Polygon is not included")
+        
+        proj_footprint = []
+        for ccd in self.footprint:
+            proj_footprint.append(ccd.project(ra, dec, pos_angle))
+
+        return proj_footprint
+
+
+    @staticmethod
+    def get(
+            api_token: str, id: int = None, ids: List[int] = None, name: str = None,
+            names: List[str] = None, type: apimodels.instrument_type = None,
+            include_footprint=False, approximate_footprint=True, urlencode=False
+        ):
+        get_dict = util.non_none_locals(locals=locals())
+
+        r_json = {
+            "d_json":get_dict
+        }
+
+        api = baseapi.api(target="instruments")
+        req = api._get(r_json=r_json, urlencode=urlencode)
+
+        ret = []
+        if req.status_code == 200:
+            request_json = json.loads(req.text)
+            for i in request_json:
+                if isinstance(i, str):
+                    instrument_json = json.loads(i)
+                else:
+                    instrument_json = i
+                ret.append(Instrument(kwdict=instrument_json))
+        else:
+            raise Exception(f"Error in Instrument.get(). Request: {req.text[0:1000]}")
+        
+        if include_footprint:
+            for inst in ret:
+                inst.footprint = Footprint.get(
+                    api_token=api_token, instrumentid=inst.id, approximate_footprint=approximate_footprint
+                )
+
+        return ret
         
