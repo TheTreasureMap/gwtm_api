@@ -19,6 +19,18 @@ COLORS = [
 	"#C895C5", "#320033", "#FF6832", "#66E1D3", "#CFCDAC", "#D0AC94", "#7ED379", "#012C58"
 	]
 
+def non_none_locals(locals: dict) -> dict:
+    ignore_locals = ["self", "__class__", "base", "api_version", "urlencode", "debug", "cache"]
+
+    non_none_keys = [key for key, value in locals.items() if value is not None and key not in ignore_locals]
+    selfdict = {}
+
+    for key in non_none_keys:
+        selfdict[key] = locals[key]
+
+    return selfdict
+
+
 def ra_dec_to_uvec(ra, dec):
     phi = np.deg2rad(90 - dec)
     theta = np.deg2rad(ra)

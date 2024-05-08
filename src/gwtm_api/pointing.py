@@ -1,63 +1,105 @@
+from __future__ import annotations
 import json
+import datetime
+from typing import List
 
 from .core import baseapi
 from .core import apimodels
-from . import GWTM_GET_POINTING_KEYS, GWTM_POST_POINTING_KEYS
+from .core import util
 
 class Pointing(apimodels._Table):
-    id = None
-    position = None
-    ra = None
-    dec = None
-    instrumentid = None
-    time = None
-    status = None
-    depth = None
-    depth_unit = None
-    band = None
-    wavelength_regime = None
-    wavelength_unit = None
-    energy_regime = None
-    energy_unit = None
-    frequency_regime = None
-    frequency_unit = None
-    pos_angle = None
-    depth_err = None
-    doi_url = None
-    doi_id = None
-    submitterid = None
-    central_wave = None
-    bandwidth = None
+    id: int = None
+    position: str = None
+    ra: float = None
+    dec: float = None
+    instrumentid: int = None
+    time: datetime.datetime = None
+    status: apimodels.pointing_status = None
+    depth: float = None
+    depth_unit: apimodels.depth_unit = None
+    band: apimodels.bandpass = None
+    wavelength_regime: List[float] = None
+    wavelength_unit: apimodels.wavelength_units = None
+    energy_regime: List[float] = None
+    energy_unit: apimodels.energy_units = None
+    frequency_regime: List[float] = None
+    frequency_unit: apimodels.frequency_units = None
+    pos_angle: float = None
+    depth_err: float = None
+    doi_url: str = None
+    doi_id: int = None
+    submitterid: int = None
+    central_wave: float = None
+    bandwidth: float = None
 
-    def __init__(self, kwdict=None, **kwargs):
+    def __init__(self, kwdict=None, 
+        id: int = None,
+        position: str = None,
+        ra: float = None,
+        dec: float = None,
+        instrumentid: int = None,
+        time: datetime.datetime = None,
+        status: apimodels.pointing_status = None,
+        depth: float = None,
+        depth_unit: apimodels.depth_unit = None,
+        band: apimodels.bandpass = None,
+        wavelength_regime: List[float] = None,
+        wavelength_unit: apimodels.wavelength_units = None,
+        energy_regime: List[float] = None,
+        energy_unit: apimodels.energy_units = None,
+        frequency_regime: List[float] = None,
+        frequency_unit: apimodels.frequency_units = None,
+        pos_angle: float = None,
+        depth_err: float = None,
+        doi_url: str = None,
+        doi_id: int = None,
+        submitterid: int = None,
+        central_wave: float = None,
+        bandwidth: float = None
+    ):
+
+        self.position = position
+        self.time = time
 
         if kwdict is not None:
             selfdict = kwdict
         else:
-            selfdict = kwargs
+            selfdict = util.non_none_locals(locals=locals())
 
         super().__init__(payload=selfdict)
 
-        self.sanatize_pointing()
+        if "position" in selfdict.keys():
+            self._sanatize_pointing()
+        elif all([x in selfdict.keys() for x in ["ra", "dec"]]):
+            self._sanatize_ra_dec()
+        else:
+            raise Exception("Positional arguments are required. Must be decimal format ra, dec, or geometry type \"POINT(ra dec)\"")
 
-    def validate(self):
-        pass
 
-    def sanatize_pointing(self):
+    def _sanatize_pointing(self):
         if self.position is not None:
             try:
                 self.ra = float(self.position.split('(')[1].split(')')[0].split()[0])
                 self.dec = float(self.position.split('(')[1].split(')')[0].split()[1])
             except:  # noqa: E722
-                raise Exception("Invalid position argument. Must be 'POINT (RA DEC)'.")
+                raise Exception("Invalid position argument. Must be 'POINT (\{ra\} \{dec\})'.")
 
-    def post(self, **kwargs):
-        post_keys = list(GWTM_POST_POINTING_KEYS)
-        post_dict = {}
 
-        post_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in post_keys
-        )
+    def _sanatize_ra_dec(self):
+        if self.position is None:
+            if all([isinstance(x, float) for x in [self.ra, self.dec]]):
+                self.position = f"POINT ({self.ra} {self.dec})"
+            else:
+                raise Exception("Invalid format for ra/dec. Both must be float")
+
+
+    def post(
+            self, api_token: str, graceid: str, request_doi: bool = None, 
+            doi_url: str = None, creators: List[dict] = None, doi_group_id: int = None,
+            base: str = "https://treasuremap.space/api/", api_version: str ="v1",
+        ):
+        
+        post_dict = util.non_none_locals(locals=locals())
 
         self.time = self.time.strftime("%Y-%m-%dT%H:%M:%S.%f")
         post_dict["pointings"]=[self.__dict__]
@@ -66,7 +108,7 @@ class Pointing(apimodels._Table):
             "d_json":post_dict
         }
 
-        api = baseapi.api(target="pointings")
+        api = baseapi.api(target="pointings", base=base)
         req = api._post(r_json=r_json)
 
         if req.status_code == 200:
@@ -77,18 +119,18 @@ class Pointing(apimodels._Table):
 
 
     @staticmethod
-    def batch_post(pointings: list, **kwargs):
-        post_keys = list(GWTM_POST_POINTING_KEYS)
-        post_dict = {}
-
-        post_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in post_keys
-        )
+    def batch_post(
+        api_token: str, graceid: str, pointings: List[Pointing], request_doi: bool = False, 
+            doi_url: str = None, creators: List[dict] = None, doi_group_id: int = None,
+            base: str = "https://treasuremap.space/api/", api_version="v1"
+        ):
+        
+        post_dict = util.non_none_locals(locals=locals())
 
         batch_pointings = []
         for p in pointings:
             if not isinstance(p, Pointing):
-                raise Exception("Input pointing must be a list of Pointings")
+                raise Exception("Input \'pointings\' must be type List[Pointing]")
             p.time = p.time.strftime("%Y-%m-%dT%H:%M:%S.%f")
             batch_pointings.append(p.__dict__)
         
@@ -98,7 +140,7 @@ class Pointing(apimodels._Table):
             "d_json":post_dict
         }
 
-        api = baseapi.api(target="pointings")
+        api = baseapi.api(target="pointings", base=base, api_version=api_version)
         req = api._post(r_json=r_json)
 
         if req.status_code == 200:
@@ -109,19 +151,26 @@ class Pointing(apimodels._Table):
 
 
     @staticmethod
-    def get(urlencode=False, **kwargs):
-        get_keys = list(GWTM_GET_POINTING_KEYS)
-        get_dict = {}
+    def get(
+            api_token: str, graceid: str = None, graceids: List[str] = None, instrument: str = None,
+            instruments: List[str] = None, id: int = None, ids: List[int] = None, status: apimodels.pointing_status = None,
+            completed_after: datetime.datetime = None, completed_before: datetime.datetime = None,
+            planned_after: datetime.datetime = None, planned_before: datetime.datetime = None,
+            user: str = None, users: List[str] = None, band: apimodels.bandpass = None, 
+            bands: List[apimodels.bandpass] = None, central_wave: float = None, bandwidth: float = None, 
+            wavelength_regime: List[float] = None, wavelength_unit: apimodels.wavelength_units = None,
+            energy_regime: List[float] = None, energy_unit: apimodels.energy_units = None,
+            frequency_regime: List[float] = None, frequency_unit: apimodels.frequency_units = None,
+            base: str = "https://treasuremap.space/api/", api_version: str ="v1", urlencode: bool = False, 
+        ):
 
-        get_dict.update(
-            (str(key).lower(), value) for key, value in kwargs.items() if str(key).lower() in get_keys
-        )
+        get_dict = util.non_none_locals(locals=locals())
 
         r_json = {
             "d_json":get_dict
         }
 
-        api = baseapi.api(target="pointings", base='v1')
+        api = baseapi.api(target="pointings", base=base, api_version=api_version)
         req = api._get(r_json=r_json, urlencode=urlencode)
 
         if req.status_code == 200:

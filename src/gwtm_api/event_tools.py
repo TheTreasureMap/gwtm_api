@@ -1,3 +1,5 @@
+from typing import List
+import ligo.skymap.plot  # noqa: F401
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
 import numpy as np
@@ -12,10 +14,7 @@ from .instrument import Footprint as Footprint
 from .alert import Alert as Alert
 from .core.util import instrument_color
 
-# MVP TODO'S:
-#   MVP+ plot mwe info
-
-def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
+def plot_coverage(api_token: str, graceid: str, pointings: List[Pointing] = [],
     cache=False, projection='astro hours mollweide'):
     
     if len(pointings) == 0 and graceid is None:
@@ -141,7 +140,7 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = 
     plt.show()
 
 
-def calculate_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
+def calculate_coverage(api_token: str, graceid: str, pointings: List[Pointing] = [],
     cache=False, approximate=True):
     DECam_id = 38
     if len(pointings) == 0 and graceid is None:
@@ -235,7 +234,7 @@ def calculate_coverage(api_token: str = None, graceid: str = None, pointings: li
     area = pixarea * len(deduped_indices)
     return prob, area
 
-def renormalize_skymap(api_token: str = None, graceid: str = None, pointings: list = [],
+def renormalize_skymap(api_token: str, graceid: str, pointings: List[Pointing] = [],
     cache=False):
 
 
