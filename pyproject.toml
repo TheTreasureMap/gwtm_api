@@ -11,6 +11,15 @@ authors = [
 description = "A python API wrapper for the Gravitational Wave Treasure Map"
 readme = "README.md"
 requires-python = ">=3.10"
+
+dependencies = [
+  "astropy",
+  "healpy",
+  "requests",
+  "ligo.skymap",
+  "matplotlib"
+]
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
