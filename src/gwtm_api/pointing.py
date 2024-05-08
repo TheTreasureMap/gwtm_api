@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 import datetime
 from typing import List
@@ -119,7 +120,7 @@ class Pointing(apimodels._Table):
 
     @staticmethod
     def batch_post(
-        api_token: str, graceid: str, pointings: list, request_doi: bool = False, 
+        api_token: str, graceid: str, pointings: List[Pointing], request_doi: bool = False, 
             doi_url: str = None, creators: List[dict] = None, doi_group_id: int = None,
             base: str = "https://treasuremap.space/api/", api_version="v1"
         ):
