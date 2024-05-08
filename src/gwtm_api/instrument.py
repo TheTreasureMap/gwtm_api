@@ -4,6 +4,8 @@ import hashlib
 from typing import List
 import numpy as np
 
+from .pointing import Pointing
+
 from .core import baseapi
 from .core import apimodels
 from .core import util 
@@ -99,7 +101,7 @@ class Footprint(apimodels._Table):
 
 
     @staticmethod
-    def get_cached_footprints(graceid: str = None, instrument_id: int = None, pointings: list = None):
+    def get_cached_footprints(graceid: str = None, instrument_id: int = None, pointings: List[Pointing] = None):
         pointingids = [x.id for x in pointings]
         hashpointingids =  hashlib.sha1(json.dumps(pointingids).encode()).hexdigest()
         cache_name = f"footprints_{graceid}_{instrument_id}_{hashpointingids}"
@@ -107,7 +109,7 @@ class Footprint(apimodels._Table):
         return cache.get()
 
     @staticmethod
-    def put_cached_footprints(footprints, graceid: str = None, instrument_id: int = None, pointings: list = None):
+    def put_cached_footprints(footprints, graceid: str = None, instrument_id: int = None, pointings: List[Pointing] = None):
         pointingids = [x.id for x in pointings]
         hashpointingids =  hashlib.sha1(json.dumps(pointingids).encode()).hexdigest()
         cache_name = f"footprints_{graceid}_{instrument_id}_{hashpointingids}"

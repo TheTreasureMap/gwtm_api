@@ -140,7 +140,7 @@ def plot_coverage(api_token: str = None, graceid: str = None, pointings: List[Po
     plt.show()
 
 
-def calculate_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
+def calculate_coverage(api_token: str = None, graceid: str = None, pointings: List[Pointing] = [],
     cache=False, approximate=True):
     DECam_id = 38
     if len(pointings) == 0 and graceid is None:
@@ -234,7 +234,7 @@ def calculate_coverage(api_token: str = None, graceid: str = None, pointings: li
     area = pixarea * len(deduped_indices)
     return prob, area
 
-def renormalize_skymap(api_token: str = None, graceid: str = None, pointings: list = [],
+def renormalize_skymap(api_token: str = None, graceid: str = None, pointings: List[Pointing] = [],
     cache=False):
 
 

@@ -9,45 +9,45 @@ from .core.tmcache import TMCache
 from .core import util
 
 class Alert(apimodels._Table):
-    id: int
-    graceid: str
-    alternateid: str
-    role: str
-    timesent: datetime.datetime
-    time_of_signal: datetime.datetime
-    packet_type: int
-    alert_type: str
-    detectors: str
-    description: float
-    far: float
-    skymap_fits_url: str
-    distance: float
-    distance_error: float
-    prob_bns: float
-    prob_nsbh: float
-    prob_gap: float
-    prob_bbh: float
-    prob_terrestrial: float
-    prob_hasns: float
-    prob_hasremenant: float
-    datecreated: datetime.datetime
-    group: float
-    centralfreq: float
-    duration: float
-    avgra: float
-    avgdec : float
-    observing_run: str
-    pipeline: str
-    search: str
-    gcn_notice_id: int
-    ivorn: str
-    ext_coinc_observatory: str
-    ext_coinc_search: str
-    time_difference: float
-    time_coincidence_far: float
-    time_sky_position_coincidence_far: float
-    area_90: float
-    area_50: float
+    id: int = None
+    graceid: str = None
+    alternateid: str = None
+    role: str = None
+    timesent: datetime.datetime = None
+    time_of_signal: datetime.datetime = None
+    packet_type: int = None
+    alert_type: str = None
+    detectors: str = None
+    description: float = None
+    far: float = None
+    skymap_fits_url: str = None
+    distance: float = None
+    distance_error: float = None
+    prob_bns: float = None
+    prob_nsbh: float = None
+    prob_gap: float = None
+    prob_bbh: float = None
+    prob_terrestrial: float = None
+    prob_hasns: float = None
+    prob_hasremenant: float = None
+    datecreated: datetime.datetime = None
+    group: float = None
+    centralfreq: float = None
+    duration: float = None
+    avgra: float = None
+    avgdec : float = None
+    observing_run: str = None
+    pipeline: str = None
+    search: str = None
+    gcn_notice_id: int = None
+    ivorn: str = None
+    ext_coinc_observatory: str = None
+    ext_coinc_search: str = None
+    time_difference: float = None
+    time_coincidence_far: float = None
+    time_sky_position_coincidence_far: float = None
+    area_90: float = None
+    area_50: float = None
 
     def __init__(self, 
             id: int = None,
