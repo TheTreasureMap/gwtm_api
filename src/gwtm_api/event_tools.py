@@ -1,3 +1,4 @@
+from typing import List
 import ligo.skymap.plot  # noqa: F401
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
@@ -13,7 +14,7 @@ from .instrument import Footprint as Footprint
 from .alert import Alert as Alert
 from .core.util import instrument_color
 
-def plot_coverage(api_token: str = None, graceid: str = None, pointings: list = [],
+def plot_coverage(api_token: str = None, graceid: str = None, pointings: List[Pointing] = [],
     cache=False, projection='astro hours mollweide'):
     
     if len(pointings) == 0 and graceid is None:

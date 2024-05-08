@@ -7,6 +7,29 @@ from .core import apimodels
 from .core import util
 
 class Pointing(apimodels._Table):
+    id: int = None
+    position: str = None
+    ra: float = None
+    dec: float = None
+    instrumentid: int = None
+    time: datetime.datetime = None
+    status: apimodels.pointing_status = None
+    depth: float = None
+    depth_unit: apimodels.depth_unit = None
+    band: apimodels.bandpass = None
+    wavelength_regime: List[float] = None
+    wavelength_unit: apimodels.wavelength_units = None
+    energy_regime: List[float] = None
+    energy_unit: apimodels.energy_units = None
+    frequency_regime: List[float] = None
+    frequency_unit: apimodels.frequency_units = None
+    pos_angle: float = None
+    depth_err: float = None
+    doi_url: str = None
+    doi_id: int = None
+    submitterid: int = None
+    central_wave: float = None
+    bandwidth: float = None
 
     def __init__(self, kwdict=None, 
         id: int = None,

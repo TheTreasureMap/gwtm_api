@@ -23,10 +23,10 @@ def get_pointing_test():
     #   energy_regimes
 
     #testing graceids
-    pointings = gwtm_api.Pointing.get(graceids=["GW190814", "S190425z"], api_token=API_TOKEN,debug=True)
+    pointings = gwtm_api.Pointing.get(graceids=["GW190814", "S190425z"], api_token=API_TOKEN)
     
-    users_t = [96, 2, 3, 5, 6, 7, 69, 73, 106, 57, 93, 'alkdjf']
-    pointings = gwtm_api.Pointing.get(users=users_t, api_token=API_TOKEN, debug=True)
+    users_t = [6,7]
+    pointings = gwtm_api.Pointing.get(users=users_t, api_token=API_TOKEN)
 
     # statuses = ['completed']
     # pointings = gwtm_api.Pointing.get(status=statuses, graceid="GW190814", api_token=API_TOKEN)
@@ -94,5 +94,5 @@ def batch_pointing_post():
     gwtm_api.Pointing.batch_post(pointings=batch, graceid='MS181101ab', api_token=API_TOKEN)
 
 get_pointing_test()
-#post_pointing_test()
-#batch_pointing_post()
+post_pointing_test()
+batch_pointing_post()

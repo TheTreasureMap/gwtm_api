@@ -116,6 +116,13 @@ class Footprint(apimodels._Table):
 
 
 class Instrument(apimodels._Table):
+    id: int = None
+    instrument_name: str = None
+    instrument_type: apimodels.instrument_type = None
+    datecreated: datetime.datetime = None
+    submitterid: int = None,
+    nickname: str = None
+    footprint: List[Footprint] = None
 
     def __init__(
         self, 
