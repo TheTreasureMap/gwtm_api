@@ -10,9 +10,6 @@ GWTM_GET_CANDIDATE_KEYS = [
     'associated_galaxy_distance_gt', 'associated_galaxy_distance_lt'
 ]
 
-GWTM_GET_ALERT_KEYS = [
-    'api_token', 'id', 'graceid'
-]
 
 from .pointing import Pointing as Pointing  # noqa: E402
 from.candidate import Candidate as Candidate  #noqa: E402
