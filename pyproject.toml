@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "gwtm_api"
 version = "0.0.1"
 authors = [
-  { name="Samuel Wyatt", email="swyatt@arizona.edu" },
+  { name="Samuel Wyatt", email="samuel.d.wyatt@nasa.gov" },
 ]
 description = "A python API wrapper for the Gravitational Wave Treasure Map"
 readme = "README.md"
@@ -27,5 +27,5 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/TheTreasureMap/gwtm_api"
+"Bug Tracker" = "https://github.com/TheTreasureMap/gwtm_api/issues"

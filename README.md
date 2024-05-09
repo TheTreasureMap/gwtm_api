@@ -4,12 +4,9 @@ A python wrapper for the [Gravitational Wave Treasure Map](http://treasuremap.sp
 In order to interact with the web API, you will need to [register](http://treasuremap.space/register) an account with the GWTM. Once verified you will recieve an `API_TOKEN` to pass into all api endpoints.
 
 ```bash
-git clone https://github.com/TheTreasureMap/gwtm_api.git
-cd gwtm_api
-conda create -n gwtm python=3.10
-source activate gwtm
-python -m pip install -r requirments.txt
-python -m pip install -e .
+conda create -n gwtm_api python=3.11
+conda activate gwtm_api
+python -m pip install gwtm_api
 ```
 
 
