@@ -8,7 +8,7 @@ from .core import util
 
 class Candidate(apimodels._Table):
     id: int = None
-    created_date: datetime.datetime = None
+    datecreated: Union[datetime.datetime, str] = None
     graceid: str = None
     candidate_name: str = None
     tns_name: str = None
@@ -35,7 +35,6 @@ class Candidate(apimodels._Table):
     def __init__(
             self, 
             id: int = None,
-            created_date: datetime.datetime = None,
             graceid: str = None,
             candidate_name: str = None,
             tns_name: str = None,
@@ -111,7 +110,7 @@ class Candidate(apimodels._Table):
             self, api_token: str, graceid: str = None,
             base: str = "https://treasuremap.space/api/", api_version: str ="v1",
             verbose = False
-        ) -> Candidate:
+        ):
         if graceid is None:
             graceid = self.graceid
         
@@ -133,7 +132,7 @@ class Candidate(apimodels._Table):
             if verbose:
                 print(request_json)
             id = request_json["candidate_ids"][0]
-            return Candidate.get(api_token=api_token, id=id)[0]
+            self.__init__(kwdict=Candidate.get(api_token=api_token, id=id)[0].__dict__)
         else:
             raise Exception(f"Error in Candidate.post(). Request: {req.text[0:1000]}")
 
@@ -192,7 +191,7 @@ class Candidate(apimodels._Table):
     ) -> list[Candidate]:
         
         get_dict = util.non_none_locals(locals=locals())
-
+        
         r_json = {
             "d_json":get_dict
         }
@@ -217,7 +216,7 @@ class Candidate(apimodels._Table):
     def put(
             self, api_token: str, payload: dict = None, base: str = "https://treasuremap.space/api/", 
             api_version: str ="v1", verbose: bool = False
-        ) -> Candidate:
+        ):
         '''
             Candidate PUT endpoint
         '''
@@ -231,6 +230,8 @@ class Candidate(apimodels._Table):
         
         if self.discovery_date:
             self.discovery_date = self.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
+        if self.datecreated:
+            self.datecreated = self.datecreated.strftime("%Y-%m-%dT%H:%M:%S.%f")
 
         put_dict = {
             "api_token": api_token,
@@ -248,7 +249,7 @@ class Candidate(apimodels._Table):
             request_json = json.loads(req.text)
             if verbose:
                 print(request_json)
-            return Candidate(id=self.id, api_token=api_token)
+            self.__init__(kwdict=Candidate.get(api_token=api_token, id=self.id)[0].__dict__)
         else:
             raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")
 
@@ -277,6 +278,7 @@ class Candidate(apimodels._Table):
             request_json = json.loads(req.text)
             if verbose:
                 print(request_json)
+            return request_json
         else:
             raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")
     
@@ -284,7 +286,7 @@ class Candidate(apimodels._Table):
     def batch_delete(
             api_token: str, ids: List[int], base: str = "https://treasuremap.space/api/", api_version: str ="v1",
             verbose: bool = False
-        ):
+        ) -> dict:
         '''
             Canididates DELETE endpoint
         '''
@@ -302,5 +304,6 @@ class Candidate(apimodels._Table):
             request_json = json.loads(req.text)
             if verbose:
                 print(request_json)
+            return request_json
         else:
             raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")

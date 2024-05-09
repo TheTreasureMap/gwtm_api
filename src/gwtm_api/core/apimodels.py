@@ -170,6 +170,7 @@ class _TableKeys():
             "clsname":"Candidate",
             'fields':[
                 _TableKeysField('id', int, False),
+                _TableKeysField('datecreated', datetime.datetime, False),
                 _TableKeysField('graceid', str, False),
                 _TableKeysField('candidate_name', str, True),
                 _TableKeysField('tns_name', str, False),

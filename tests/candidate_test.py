@@ -29,6 +29,7 @@ def test_post():
     )
     
     candidate.post(api_token=API_TOKEN, graceid="MS181101ab")
+    candidate.dump()
 
 
 def test_batch_post():
@@ -53,19 +54,21 @@ def test_batch_post():
             magnitude_bandpass = "r"
         )
     ]
-    gwtm_api.Candidate.batch_post(candidates=batch, api_token=API_TOKEN, graceid="MS181101ab")
+    cs = gwtm_api.Candidate.batch_post(candidates=batch, api_token=API_TOKEN, graceid="MS181101ab")
+    for c in cs:
+        c.dump()
 
 def put_test():
-    candidate = gwtm_api.Candidate.get(api_token=API_TOKEN, id = 20)
+    candidate = gwtm_api.Candidate.get(api_token=API_TOKEN, id = 30)
     my_candidate = candidate[0]
     my_candidate.candidate_name = "test_update_candidate_name"
     my_candidate.put(api_token=API_TOKEN, base="http://127.0.0.1:5000/api/")
-    updated = gwtm_api.Candidate.get(api_token=API_TOKEN, id = 20)
+    updated = gwtm_api.Candidate.get(api_token=API_TOKEN, id = 30)
     print("")
     updated[0].dump()
 
-    candidate = gwtm_api.Candidate(id=20, api_token=API_TOKEN)
-    candidate.put(api_token=API_TOKEN, payload={"tns_name": "update_tns_name"}, base="http://127.0.0.1:5000/api/")
+    candidate = gwtm_api.Candidate(id=30, api_token=API_TOKEN)
+    candidate.put(api_token=API_TOKEN, payload={"tns_name": "bingbango"}, base="http://127.0.0.1:5000/api/")
     candidate.dump()
 
 def del_test():
@@ -73,12 +76,12 @@ def del_test():
     candidate.delete(api_token=API_TOKEN, base="http://127.0.0.1:5000/api/")
 
 def batch_delete():
-    gwtm_api.Candidate.batch_delete(api_token=API_TOKEN, ids=[15,16,17], verbose=True)
+    gwtm_api.Candidate.batch_delete(api_token=API_TOKEN, ids=list(range(0, 100)), verbose=True)
 
 if __name__ == "__main__":
     #test_post()
     #test_batch_post()
     #test_get()
-    put_test()
+    #put_test()
     #del_test()
-    #batch_delete()
+    batch_delete()
