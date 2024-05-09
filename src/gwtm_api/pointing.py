@@ -55,7 +55,8 @@ class Pointing(apimodels._Table):
         doi_id: int = None,
         submitterid: int = None,
         central_wave: float = None,
-        bandwidth: float = None
+        bandwidth: float = None,
+        api_token: str = None
     ):
 
         self.position = position
@@ -66,6 +67,17 @@ class Pointing(apimodels._Table):
         else:
             selfdict = util.non_none_locals(locals=locals())
 
+        #if user passes in an ID, then prepopulate with a get request
+        if id:
+            if api_token:
+                payload = Pointing.get(api_token=api_token, id=id)
+                if len(payload):
+                    selfdict = payload[0].__dict__
+                else:
+                    raise Exception(f"No candidate found with id: {id}")
+            else:
+                raise Exception("api_token required")
+            
         super().__init__(payload=selfdict)
 
         if "position" in selfdict.keys():
@@ -97,6 +109,7 @@ class Pointing(apimodels._Table):
             self, api_token: str, graceid: str, request_doi: bool = None, 
             doi_url: str = None, creators: List[dict] = None, doi_group_id: int = None,
             base: str = "https://treasuremap.space/api/", api_version: str ="v1",
+            verbose: bool = False
         ):
         
         post_dict = util.non_none_locals(locals=locals())
@@ -113,7 +126,10 @@ class Pointing(apimodels._Table):
 
         if req.status_code == 200:
             request_json = json.loads(req.text)
-            print(request_json)
+            if verbose:
+                print(request_json)
+            id = request_json["pointing_ids"][0]
+            self.__init__(kwdict=Pointing.get(api_token=api_token, id=id)[0].__dict__)
         else:
             raise Exception(f"Error in Pointing.post(). Request: {req.text[0:1000]}")
 
@@ -122,8 +138,9 @@ class Pointing(apimodels._Table):
     def batch_post(
         api_token: str, graceid: str, pointings: List[Pointing], request_doi: bool = False, 
             doi_url: str = None, creators: List[dict] = None, doi_group_id: int = None,
-            base: str = "https://treasuremap.space/api/", api_version="v1"
-        ):
+            base: str = "https://treasuremap.space/api/", api_version="v1",
+            verbose: bool = False
+        ) -> List[Pointing]:
         
         post_dict = util.non_none_locals(locals=locals())
 
@@ -145,7 +162,10 @@ class Pointing(apimodels._Table):
 
         if req.status_code == 200:
             request_json = json.loads(req.text)
-            print(request_json)
+            ids = request_json["pointing_ids"]
+            if verbose:
+                print(request_json)
+            return Pointing.get(api_token=api_token, ids=ids)
         else:
             raise Exception(f"Error in Pointing.post(). Request: {req.text[0:1000]}")
 
@@ -162,7 +182,7 @@ class Pointing(apimodels._Table):
             energy_regime: List[float] = None, energy_unit: apimodels.energy_units = None,
             frequency_regime: List[float] = None, frequency_unit: apimodels.frequency_units = None,
             base: str = "https://treasuremap.space/api/", api_version: str ="v1", urlencode: bool = False, 
-        ):
+        ) -> List[Pointing]:
 
         get_dict = util.non_none_locals(locals=locals())
 
@@ -174,7 +194,7 @@ class Pointing(apimodels._Table):
         req = api._get(r_json=r_json, urlencode=urlencode)
 
         if req.status_code == 200:
-            ret = []
+            ret: List[Pointing] = []
             request_json = json.loads(req.text)
             for p in request_json:
                 if 'v0' in api.base:

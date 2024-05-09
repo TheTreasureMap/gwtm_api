@@ -91,7 +91,9 @@ def batch_pointing_post():
         )
     ]
 
-    gwtm_api.Pointing.batch_post(pointings=batch, graceid='MS181101ab', api_token=API_TOKEN)
+    batch = gwtm_api.Pointing.batch_post(pointings=batch, graceid='MS181101ab', api_token=API_TOKEN)
+    for b in batch:
+        b.dump()
 
 get_pointing_test()
 post_pointing_test()
