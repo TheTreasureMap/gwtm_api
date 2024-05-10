@@ -81,6 +81,38 @@ batch = [
 gwtm_api.Pointing.batch_post(candidates=batch, graceid="GRACEID", api_token=API_TOKEN)
 ```
 
+### PUT
+Update a GWTM candidate record
+```python
+import gwtm_api
+candidate = gwtm_api.Candidate.get(api_token=API_TOKEN, id=CANDIDATE_ID)
+my_candidate = candidate[0]
+update_payload = {
+    "tns_name": "AT2017gfo",
+    "tns_url": "https://www.wis-tns.org/object/2017gfo"
+    "associated_galaxy": "NGC 4993"
+    "associated_galaxy_redshift": 0.009727
+}
+my_candidate.put(api_token=API_TOKEN, payload=update_payload)
+
+#or similarly
+candidate = gwtm_api.Candidate(id=CANDIDATE_ID, api_token=API_TOKEN) #this will envoke the GET endpoint if it has an id and api token
+candidate.tns_name = "AT2017gfo"
+candidate.tns_url = "https://www.wis-tns.org/object/2017gfo"
+candidate.associated_galaxy = "NGC 4993"
+candidate.associated_galaxy_redshift = 0.009727
+candidate.put(api_token=API_TOKEN)
+```
+
+### Delete
+```python
+candidate = gwtm_api.Candidate(id=21, api_token=API_TOKEN)
+candidate.delete(api_token=API_TOKEN)
+
+#or batch delete with a list of ids
+gwtm_api.Candidate.batch_delete(api_token=API_TOKEN, ids=[id1, id2....], verbose=True)
+```
+
 ## Instruments
 Query for instrument information that have been submitted to the Treasure Map
 ```python
