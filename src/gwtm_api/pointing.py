@@ -114,6 +114,8 @@ class Pointing(apimodels._Table):
             base: str = "https://treasuremap.space/api/", api_version: str ="v1",
             verbose: bool = False
         ):
+        if isinstance(self.id, int) and self.datecreated:
+            raise Exception("It seems like you are trying to rePOST this record")
         
         post_dict = util.non_none_locals(locals=locals())
 
@@ -151,6 +153,8 @@ class Pointing(apimodels._Table):
         for p in pointings:
             if not isinstance(p, Pointing):
                 raise Exception("Input \'pointings\' must be type List[Pointing]")
+            if isinstance(p.id, int) and p.datecreated:
+                raise Exception(f"It seems like you are trying to rePOST a record: {p.__dict__}")
             p.time = p.time.strftime("%Y-%m-%dT%H:%M:%S.%f")
             batch_pointings.append(p.__dict__)
         

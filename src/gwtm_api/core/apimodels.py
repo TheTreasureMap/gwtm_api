@@ -20,6 +20,7 @@ class _TableKeys():
             "clsname":"Pointing",
             'fields':[
                 _TableKeysField('id', int, False),
+                _TableKeysField('datecreated', datetime.datetime, False),
                 _TableKeysField('position', str, False),
                 _TableKeysField('ra', float, False),
                 _TableKeysField('dec', float, False),

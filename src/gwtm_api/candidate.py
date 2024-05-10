@@ -155,6 +155,8 @@ class Candidate(apimodels._Table):
         for p in candidates:
             if not isinstance(p, Candidate):
                 raise Exception("Input candidate must be a list of Candidate")
+            if isinstance(p.id, int) and p.datecreated:
+                raise Exception(f"It seems like you are trying to rePOST a record: {p.__dict__}")
             p.discovery_date = p.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
             batch.append(p.__dict__)
         
