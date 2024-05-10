@@ -2,8 +2,10 @@ from __future__ import annotations
 import json
 import datetime
 from typing import List, Union
+
 from .core import baseapi
 from .core import apimodels
+from .core import enums
 from .core import util
 
 class Candidate(apimodels._Table):
@@ -20,14 +22,14 @@ class Candidate(apimodels._Table):
     discovery_magnitude: float = None
     magnitude_central_wave: float = None
     magnitude_bandwidth: float = None
-    magnitude_bandpass: apimodels.bandpass = None
-    magnitude_unit: apimodels.depth_unit = None
+    magnitude_bandpass: enums.bandpass = None
+    magnitude_unit: enums.depth_unit = None
     wavelength_regime: List[float] = None
-    wavelength_unit: apimodels.wavelength_units = None
+    wavelength_unit: enums.wavelength_units = None
     energy_regime: List[float] = None
-    energy_unit: apimodels.energy_units = None
+    energy_unit: enums.energy_units = None
     frequency_regime: List[float] = None
-    frequency_unit: apimodels.frequency_units = None
+    frequency_unit: enums.frequency_units = None
     associated_galaxy: str = None
     associated_galaxy_redshift: float = None
     associated_galaxy_distance: float = None
@@ -46,14 +48,14 @@ class Candidate(apimodels._Table):
             discovery_magnitude: float = None,
             magnitude_central_wave: float = None,
             magnitude_bandwidth: float = None,
-            magnitude_bandpass: apimodels.bandpass = None,
-            magnitude_unit: apimodels.depth_unit = None,
+            magnitude_bandpass: enums.bandpass = None,
+            magnitude_unit: enums.depth_unit = None,
             wavelength_regime: List[float] = None,
-            wavelength_unit: apimodels.wavelength_units = None,
+            wavelength_unit: enums.wavelength_units = None,
             energy_regime: List[float] = None,
-            energy_unit: apimodels.energy_units = None,
+            energy_unit: enums.energy_units = None,
             frequency_regime: List[float] = None,
-            frequency_unit: apimodels.frequency_units = None,
+            frequency_unit: enums.frequency_units = None,
             associated_galaxy: str = None,
             associated_galaxy_redshift: float = None,
             associated_galaxy_distance: float = None,
@@ -111,6 +113,9 @@ class Candidate(apimodels._Table):
             base: str = "https://treasuremap.space/api/", api_version: str ="v1",
             verbose = False
         ):
+        if isinstance(self.id, int) and self.datecreated:
+            raise Exception("It seems like you are trying to rePOST this record")
+        
         if graceid is None:
             graceid = self.graceid
         

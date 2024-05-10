@@ -1,29 +1,31 @@
 from __future__ import annotations
 import json
 import datetime
-from typing import List
+from typing import List, Union
 
 from .core import baseapi
 from .core import apimodels
+from .core import enums
 from .core import util
 
 class Pointing(apimodels._Table):
     id: int = None
+    datecreated: Union[datetime.datetime, str] = None
     position: str = None
     ra: float = None
     dec: float = None
     instrumentid: int = None
-    time: datetime.datetime = None
-    status: apimodels.pointing_status = None
+    time: Union[datetime.datetime, str]= None
+    status: Union[enums.pointing_status, str] = None
     depth: float = None
-    depth_unit: apimodels.depth_unit = None
-    band: apimodels.bandpass = None
+    depth_unit: enums.depth_unit = None
+    band: enums.bandpass = None
     wavelength_regime: List[float] = None
-    wavelength_unit: apimodels.wavelength_units = None
+    wavelength_unit: enums.wavelength_units = None
     energy_regime: List[float] = None
-    energy_unit: apimodels.energy_units = None
+    energy_unit: enums.energy_units = None
     frequency_regime: List[float] = None
-    frequency_unit: apimodels.frequency_units = None
+    frequency_unit: enums.frequency_units = None
     pos_angle: float = None
     depth_err: float = None
     doi_url: str = None
@@ -32,23 +34,23 @@ class Pointing(apimodels._Table):
     central_wave: float = None
     bandwidth: float = None
 
-    def __init__(self, kwdict=None, 
+    def __init__(self,  
         id: int = None,
         position: str = None,
         ra: float = None,
         dec: float = None,
         instrumentid: int = None,
-        time: datetime.datetime = None,
-        status: apimodels.pointing_status = None,
+        time: Union[datetime.datetime, str] = None,
+        status: enums.pointing_status = None,
         depth: float = None,
-        depth_unit: apimodels.depth_unit = None,
-        band: apimodels.bandpass = None,
+        depth_unit: enums.depth_unit = None,
+        band: enums.bandpass = None,
         wavelength_regime: List[float] = None,
-        wavelength_unit: apimodels.wavelength_units = None,
+        wavelength_unit: enums.wavelength_units = None,
         energy_regime: List[float] = None,
-        energy_unit: apimodels.energy_units = None,
+        energy_unit: enums.energy_units = None,
         frequency_regime: List[float] = None,
-        frequency_unit: apimodels.frequency_units = None,
+        frequency_unit: enums.frequency_units = None,
         pos_angle: float = None,
         depth_err: float = None,
         doi_url: str = None,
@@ -56,6 +58,7 @@ class Pointing(apimodels._Table):
         submitterid: int = None,
         central_wave: float = None,
         bandwidth: float = None,
+        kwdict: dict = None,
         api_token: str = None
     ):
 
@@ -173,15 +176,15 @@ class Pointing(apimodels._Table):
     @staticmethod
     def get(
             api_token: str, graceid: str = None, graceids: List[str] = None, instrument: str = None,
-            instruments: List[str] = None, id: int = None, ids: List[int] = None, status: apimodels.pointing_status = None,
+            instruments: List[str] = None, id: int = None, ids: List[int] = None, status: enums.pointing_status = None,
             completed_after: datetime.datetime = None, completed_before: datetime.datetime = None,
             planned_after: datetime.datetime = None, planned_before: datetime.datetime = None,
-            user: str = None, users: List[str] = None, band: apimodels.bandpass = None, 
-            bands: List[apimodels.bandpass] = None, central_wave: float = None, bandwidth: float = None, 
-            wavelength_regime: List[float] = None, wavelength_unit: apimodels.wavelength_units = None,
-            energy_regime: List[float] = None, energy_unit: apimodels.energy_units = None,
-            frequency_regime: List[float] = None, frequency_unit: apimodels.frequency_units = None,
-            base: str = "https://treasuremap.space/api/", api_version: str ="v1", urlencode: bool = False, 
+            user: str = None, users: List[str] = None, band: enums.bandpass = None, 
+            bands: List[enums.bandpass] = None, wavelength_regime: List[float] = None, 
+            wavelength_unit: enums.wavelength_units = None, energy_regime: List[float] = None, 
+            energy_unit: enums.energy_units = None, frequency_regime: List[float] = None, 
+            frequency_unit: enums.frequency_units = None, base: str = "https://treasuremap.space/api/", 
+            api_version: str ="v1", urlencode: bool = False, 
         ) -> List[Pointing]:
 
         get_dict = util.non_none_locals(locals=locals())
