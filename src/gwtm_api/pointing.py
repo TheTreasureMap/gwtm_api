@@ -181,6 +181,7 @@ class Pointing(apimodels._Table):
             wavelength_regime: List[float] = None, wavelength_unit: apimodels.wavelength_units = None,
             energy_regime: List[float] = None, energy_unit: apimodels.energy_units = None,
             frequency_regime: List[float] = None, frequency_unit: apimodels.frequency_units = None,
+            depth_gt: float = None, depth_lt: float = None, depth_unit: apimodels.depth_unit = None,
             base: str = "https://treasuremap.space/api/", api_version: str ="v1", urlencode: bool = False, 
         ) -> List[Pointing]:
 
