@@ -113,6 +113,7 @@ numpy==1.26.4
     #   lscsoft-glue
     #   matplotlib
     #   numcodecs
+    #   pandas
     #   ptemcee
     #   pyerfa
     #   python-ligo-lw
@@ -124,6 +125,8 @@ packaging==24.0
     #   astropy
     #   dask
     #   matplotlib
+pandas==2.2.2
+    # via gwtm_api (pyproject.toml)
 partd==1.4.2
     # via dask
 pillow==10.3.0
@@ -146,6 +149,7 @@ python-dateutil==2.9.0.post0
     # via
     #   lalsuite
     #   matplotlib
+    #   pandas
     #   python-ligo-lw
 python-ligo-lw==1.8.3
     # via ligo-skymap
@@ -153,6 +157,7 @@ pytz==2024.1
     # via
     #   astroplan
     #   ligo-skymap
+    #   pandas
 pyyaml==6.0.1
     # via
     #   astropy
@@ -191,6 +196,8 @@ tqdm==4.66.4
     # via
     #   ligo-skymap
     #   python-ligo-lw
+tzdata==2024.1
+    # via pandas
 urllib3==2.2.1
     # via requests
 zarr==2.18.0

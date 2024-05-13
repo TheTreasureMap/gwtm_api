@@ -17,7 +17,8 @@ dependencies = [
   "healpy",
   "requests",
   "ligo.skymap",
-  "matplotlib"
+  "matplotlib",
+  "pandas"
 ]
 
 classifiers = [
