@@ -1,3 +1,4 @@
+from __future__ import annotations
 import datetime
 import json
 import hashlib
@@ -162,7 +163,7 @@ class Instrument(apimodels._Table):
             api_token: str, id: int = None, ids: List[int] = None, name: str = None,
             names: List[str] = None, type: apimodels.instrument_type = None,
             include_footprint=False, approximate_footprint=True, urlencode=False
-        ):
+        ) -> List[Instrument]:
         get_dict = util.non_none_locals(locals=locals())
 
         r_json = {

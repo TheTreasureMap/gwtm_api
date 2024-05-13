@@ -3,6 +3,7 @@ import ligo.skymap.plot  # noqa: F401
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
 import numpy as np
+import pandas as pd
 import astropy
 
 import healpy as hp
@@ -11,8 +12,10 @@ from ligo.skymap.postprocess.util import find_greedy_credible_levels
 from .pointing import Pointing as Pointing
 from .instrument import Instrument as Instrument
 from .instrument import Footprint as Footprint
+from .candidate import Candidate as Candidate
 from .alert import Alert as Alert
-from .core.util import instrument_color
+from .core.util import instrument_color, gc_dist
+
 
 def plot_coverage(api_token: str, graceid: str, pointings: List[Pointing] = [],
     cache=False, projection='astro hours mollweide'):
@@ -307,3 +310,78 @@ def renormalize_skymap(api_token: str, graceid: str, pointings: List[Pointing] =
     normed_skymap = skymap/np.sum(skymap)
 
     return normed_skymap
+
+def candidate_coverage(api_token: str, candidate: Candidate, pointings: List[Pointing] = None, distance_thresh: float = 5.0) -> List[Pointing]:
+    '''
+    inputs:
+        api_token: str - valid GWTM api_token
+        candidate: Candidate - the candidate you want to evaluate the coverage for
+        pointings: List[Pointing] - you can query for your own pointings to evaluate the coverage. default = []
+        distance_threshold: float - distance in degrees. Only evaluate the pointings that are this distance from the candidate. default = 5.0 (deg)
+                
+    returns all pointings associated with the graceid that have had that candidate in its FOV
+    '''
+
+    #set an arbitarily high nside
+    skymap_nside = 1024
+    #find our candidates healpix
+    candidate_healpix = hp.ang2pix(skymap_nside, candidate.ra, candidate.dec, lonlat=True, nest=True)
+
+    #query for all pointings
+    if len(pointings) == 0:
+        all_pointings = Pointing.get(api_token=api_token, graceid=candidate.graceid)
+
+    #convert them a pandas dataframe for vectorized distance culling
+    pointings_df = pd.DataFrame([x.__dict__ for x in all_pointings])
+
+    #calculate the distance for each pointing from the candidate, and cull them
+    pointings_df["_DIST"] = gc_dist(
+        pointings_df["ra"], pointings_df["dec"], candidate.ra, candidate.dec
+    )
+    culled_pointings = pointings_df.loc[pointings_df["_DIST"] < distance_thresh]
+
+    #return nothing if there aren't any pointings associated
+    if len(culled_pointings) == 0:
+        return []
+
+    #grab the instrument information for each pointing
+    instrument_ids = culled_pointings["instrumentid"].values.tolist()
+    instruments = Instrument.get(api_token=api_token, ids=instrument_ids, include_footprint=True)
+
+    vals = zip(
+        culled_pointings["ra"].values,
+        culled_pointings["dec"].values,
+        culled_pointings["pos_angle"].values,
+        culled_pointings["id"].values,
+        culled_pointings["instrumentid"].values
+    )
+
+    return_ids = []
+
+    #iterate over our pointing values
+    for pra, pdec, ppos_angle, pid, pinstid in vals:
+        #project the instrument footprint for each pointing
+        instrument = [x for x in instruments if x.id == pinstid][0]
+        projected = instrument.project(pra, pdec, ppos_angle)
+
+        #prepare the polygon for hp.query_polygon
+        polygon_arr = []
+        for ccd in projected:
+            ra_deg, dec_deg = zip(*[(coord_deg[0], coord_deg[1])
+                                    for coord_deg in ccd])
+            
+            list_o_coords = []
+            for x, y in zip(ra_deg, dec_deg):
+                list_o_coords.append((x, y))
+            polygon_arr.append(list_o_coords)
+        
+        #query the polygons and append the pointing.id if the healpix pixel is in the polygon query
+        for j,arr in enumerate(polygon_arr):
+            ras_poly = [x[0] for x in arr][:-1]
+            decs_poly = [x[1] for x in arr][:-1]
+            xyzpoly = astropy.coordinates.spherical_to_cartesian(1, np.deg2rad(decs_poly), np.deg2rad(ras_poly))
+            qp = hp.query_polygon(skymap_nside,np.array(xyzpoly).T, nest=True)
+            if candidate_healpix in qp:
+                return_ids.append(pid)
+    #so she goes
+    return [x for x in all_pointings if x.id in return_ids]

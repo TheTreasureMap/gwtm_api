@@ -83,6 +83,7 @@ def z_rot(theta_deg):
         [0, 0, 1]
     ])
 
+
 def instrument_color(integer):
     #GWTM friendly colors
     colorlist=[
@@ -94,3 +95,21 @@ def instrument_color(integer):
         return colorlist[integer]
     except:  # noqa: E722
         return COLORS[integer]
+
+
+def gc_dist(lon1, lat1, lon2, lat2) -> np.ndarray:
+    '''
+        function that calculates the distance between two points
+            p1 (lon1, lat1) or (ra1, dec1)
+            p2 (lon2, lat2) or (ra2, dec2)
+
+            can be np.array()
+            returns np.array()
+    '''
+    lon1 = np.radians(lon1)
+    lat1 = np.radians(lat1)
+    
+    lon2 = np.radians(lon2)
+    lat2 = np.radians(lat2)
+
+    return np.degrees(2*np.arcsin(np.sqrt( (np.sin((lat1-lat2)*0.5))**2 + np.cos(lat1)*np.cos(lat2)*(np.sin((lon1-lon2)*0.5))**2 )))
