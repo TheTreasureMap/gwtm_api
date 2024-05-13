@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List, Tuple
 import ligo.skymap.plot  # noqa: F401
 from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
@@ -9,16 +9,13 @@ import astropy
 import healpy as hp
 from ligo.skymap.postprocess.util import find_greedy_credible_levels
 
-from .pointing import Pointing as Pointing
-from .instrument import Instrument as Instrument
-from .instrument import Footprint as Footprint
-from .candidate import Candidate as Candidate
+from . import Pointing, Instrument, Footprint, Candidate
 from .alert import Alert as Alert
 from .core.util import instrument_color, gc_dist
 
 
 def plot_coverage(api_token: str, graceid: str, pointings: List[Pointing] = [],
-    cache=False, projection='astro hours mollweide'):
+    cache=False, projection='astro hours mollweide') -> None:
     
     if len(pointings) == 0 and graceid is None:
         raise Exception("Pointings list or graceid is required")
@@ -144,7 +141,7 @@ def plot_coverage(api_token: str, graceid: str, pointings: List[Pointing] = [],
 
 
 def calculate_coverage(api_token: str, graceid: str, pointings: List[Pointing] = [],
-    cache=False, approximate=True):
+    cache=False, approximate=True) -> Tuple[float, float]:
     DECam_id = 38
     if len(pointings) == 0 and graceid is None:
         raise Exception("Pointings list or graceid is required")
@@ -238,7 +235,7 @@ def calculate_coverage(api_token: str, graceid: str, pointings: List[Pointing] =
     return prob, area
 
 def renormalize_skymap(api_token: str, graceid: str, pointings: List[Pointing] = [],
-    cache=False):
+    cache=False) -> Any:
 
 
     if len(pointings) == 0 and graceid is None:
@@ -311,6 +308,7 @@ def renormalize_skymap(api_token: str, graceid: str, pointings: List[Pointing] =
 
     return normed_skymap
 
+
 def candidate_coverage(api_token: str, candidate: Candidate, pointings: List[Pointing] = None, distance_thresh: float = 5.0) -> List[Pointing]:
     '''
     inputs:
@@ -328,11 +326,11 @@ def candidate_coverage(api_token: str, candidate: Candidate, pointings: List[Poi
     candidate_healpix = hp.ang2pix(skymap_nside, candidate.ra, candidate.dec, lonlat=True, nest=True)
 
     #query for all pointings
-    if len(pointings) == 0:
-        all_pointings = Pointing.get(api_token=api_token, graceid=candidate.graceid)
+    if not pointings:
+        pointings = Pointing.get(api_token=api_token, graceid=candidate.graceid)
 
     #convert them a pandas dataframe for vectorized distance culling
-    pointings_df = pd.DataFrame([x.__dict__ for x in all_pointings])
+    pointings_df = pd.DataFrame([x.__dict__ for x in pointings])
 
     #calculate the distance for each pointing from the candidate, and cull them
     pointings_df["_DIST"] = gc_dist(
@@ -384,4 +382,4 @@ def candidate_coverage(api_token: str, candidate: Candidate, pointings: List[Poi
             if candidate_healpix in qp:
                 return_ids.append(pid)
     #so she goes
-    return [x for x in all_pointings if x.id in return_ids]
+    return [x for x in pointings if x.id in return_ids]
