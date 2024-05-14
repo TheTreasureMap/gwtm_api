@@ -207,4 +207,28 @@ class Pointing(apimodels._Table):
         else:
             raise Exception(f"Error in Pointing.get(). Request: {req.text[0:1000]}")
         
+    
+    @staticmethod
+    def request_doi(
+            api_token: str, graceid: str = None, id: int = None, ids: List[int] = None, creators: dict = None, 
+            doi_group_id: int = None, base: str = "https://treasuremap.space/api/", api_version: str ="v1"
+    ) -> str:
+        if all([x is None for x in [graceid, id, ids]]):
+            raise Exception("Invalid parameters to request DOI. Must specify \'graceid\', pointing \'id\', or list of \'ids\'")
         
+        get_dict = util.non_none_locals(locals=locals())
+
+        r_json = {
+            "d_json":get_dict
+        }
+
+        api = baseapi.api(target="request_doi", base=base, api_version=api_version)
+        req = api._post(r_json=r_json)
+
+        if req.status_code == 200:
+            request_json = json.loads(req.text)
+            return request_json["DOI URL"]
+        else:
+            raise Exception(f"Error in Pointing.get(). Request: {req.text[0:1000]}")
+
+        return ""

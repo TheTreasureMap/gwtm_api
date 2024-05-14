@@ -97,6 +97,11 @@ def batch_pointing_post():
     for b in batch:
         b.dump()
 
-get_pointing_test()
+def request_doi_test():
+    doi_url = gwtm_api.Pointing.request_doi(api_token=API_TOKEN, graceid='MS181101ab')
+    print(doi_url)
+
+#get_pointing_test()
 #post_pointing_test()
 #batch_pointing_post()
+request_doi_test()
