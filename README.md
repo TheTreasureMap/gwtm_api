@@ -175,3 +175,14 @@ renormalized_skymap = gwtm_api.event_tools.renormalize_skymap(
     cache=True
 )
 ```
+
+### Candidate Coerage
+For a given `candidate`, find which instruments have `pointing` footprints that overlap with the candidate's position. The user can potentially constrain which instruments have observed a candidate pre/post post discovery. User's can pass in a list of `pointings`, or it will default to all `pointings` for the `candidate's` associated graceid. The function also accepts a `distance_thresh` (in degrees) to limit the calculation to only the pointings centered within the threshold distance from the candidate. 
+
+```python
+my_candidate = gwtm_api.Candidate.get(...)
+pointings_list = gwtm_api.event_tools.candidate_coverage(
+    api_token=API_TOKEN,
+    candidate=my_candidate
+)
+```
