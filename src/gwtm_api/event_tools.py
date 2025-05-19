@@ -1,3 +1,4 @@
+import json
 from typing import Any, List, Tuple
 import ligo.skymap.plot  # noqa: F401
 from matplotlib import pyplot as plt
@@ -8,6 +9,7 @@ import astropy
 
 import healpy as hp
 from ligo.skymap.postprocess.util import find_greedy_credible_levels
+import ligo.skymap.postprocess
 
 from . import Pointing, Instrument, Footprint, Candidate
 from .alert import Alert as Alert
@@ -307,6 +309,35 @@ def renormalize_skymap(api_token: str, graceid: str, pointings: List[Pointing] =
     normed_skymap = skymap/np.sum(skymap)
 
     return normed_skymap
+
+def renormed_skymap_contours(api_token: str, graceid: str, pointings: List[Pointing] = [],
+    cache=False) -> Any:
+
+    normed_skymap = renormalize_skymap(api_token=api_token, graceid=graceid, pointings=pointings, cache=cache)
+
+    i = np.flipud(np.argsort(normed_skymap))
+    cumsum = np.cumsum(normed_skymap[i])
+    cls = np.empty_like(normed_skymap)
+    cls[i] = cumsum * 100
+    paths = list(ligo.skymap.postprocess.contour(cls, [50, 90], nest=False, degrees=True, simplify=True))
+
+    contours_json = json.dumps({
+        'type': 'FeatureCollection',
+        'features': [
+            {
+                'type': 'Feature',
+                'properties': {
+                    'credible_level': contour
+                },
+                'geometry': {
+                    'type': 'MultiLineString',
+                    'coordinates': path
+                }
+            }
+            for contour, path in zip([50,90], paths)
+        ]
+    })
+    return contours_json
 
 
 def candidate_coverage(api_token: str, candidate: Candidate, pointings: List[Pointing] = None, distance_thresh: float = 5.0) -> List[Pointing]:
