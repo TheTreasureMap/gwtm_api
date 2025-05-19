@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gwtm_api"
-version = "0.1.2"
+version = "0.1.5"
 authors = [
   { name="Samuel Wyatt", email="samuel.d.wyatt@nasa.gov" },
 ]
 description = "A python API wrapper for the Gravitational Wave Treasure Map"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11,<3.12"
 
 dependencies = [
   "astropy",
