@@ -319,7 +319,7 @@ def renormed_skymap_contours(api_token: str, graceid: str, pointings: List[Point
     cumsum = np.cumsum(normed_skymap[i])
     cls = np.empty_like(normed_skymap)
     cls[i] = cumsum * 100
-    paths = list(ligo.skymap.postprocess.contour(cls, [50, 90], nest=True, degrees=True, simplify=True))
+    paths = list(ligo.skymap.postprocess.contour(cls, [50, 90], nest=False, degrees=True, simplify=True))
 
     contours_json = json.dumps({
         'type': 'FeatureCollection',
