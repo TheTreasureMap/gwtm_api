@@ -38,6 +38,13 @@ To point at a different server (e.g. a development instance), pass `base_url`:
 gwtm_api.configure(api_token='YOUR_API_TOKEN', base_url='https://dev.treasuremap.space')
 ```
 
+Passing `api_token` directly to any method also works and is provided for backwards compatibility with older code. Note that doing so permanently updates the configured token — subsequent calls without an explicit `api_token` will reuse it:
+
+```python
+# Legacy style — still works
+pointings = gwtm_api.Pointing.get(api_token='YOUR_API_TOKEN', graceid='GW190814')
+```
+
 You can also set credentials via environment variables and call `configure()` with no arguments:
 
 ```bash
@@ -262,10 +269,10 @@ covering_pointings = gwtm_api.event_tools.candidate_coverage(candidate=my_candid
 
 ## For contributors
 
-The package uses a two-layer architecture:
+The package has a simple two-layer architecture:
 
 - **`src/gwtm_api/{pointing,alert,instrument,candidate}.py`** — hand-written, user-facing classes with a stable, friendly interface
-- **`src/gwtm_api/_generated/`** — HTTP transport layer auto-generated from the server's OpenAPI spec (not committed to the repo)
+- **`src/gwtm_api/core/_client_factory.py`** — thin httpx transport layer; configured once via `gwtm_api.configure()`
 
 ### Setup after cloning
 

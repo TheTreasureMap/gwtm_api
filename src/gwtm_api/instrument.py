@@ -102,8 +102,11 @@ class Instrument(apimodels._Table):
         if api_token:
             transport.configure(api_token=api_token)
         result = transport.get('/instruments', params={
+            'id': id,
             'ids': _encode_list_param(ids),
+            'name': name,
             'names': _encode_list_param(names),
+            'type': type,
         })
         if not isinstance(result, list):
             raise Exception("Error in Instrument.get(): unexpected response from server")

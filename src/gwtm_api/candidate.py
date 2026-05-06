@@ -175,6 +175,7 @@ class Candidate(apimodels._Table):
         result = transport.get('/candidate', params={
             'graceid': graceid,
             'id': id,
+            'ids': _encode_list_param(ids),
             'userid': userid,
             'submitted_date_after': submitted_date_after,
             'submitted_date_before': submitted_date_before,

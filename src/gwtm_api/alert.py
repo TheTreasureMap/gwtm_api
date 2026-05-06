@@ -18,7 +18,7 @@ class Alert(apimodels._Table):
     packet_type: int = None
     alert_type: str = None
     detectors: str = None
-    description: float = None
+    description: str = None
     far: float = None
     skymap_fits_url: str = None
     distance: float = None
@@ -59,7 +59,7 @@ class Alert(apimodels._Table):
             packet_type: int = None,
             alert_type: str = None,
             detectors: str = None,
-            description: float = None,
+            description: str = None,
             far: float = None,
             skymap_fits_url: str = None,
             distance: float = None,
@@ -105,7 +105,7 @@ class Alert(apimodels._Table):
     def get_all(id: int = None, graceid: str = None, api_token: str = None):
         if api_token:
             transport.configure(api_token=api_token)
-        result = transport.get('/query_alerts', params={'graceid': graceid})
+        result = transport.get('/query_alerts', params={'id': id, 'graceid': graceid})
         if not isinstance(result, list):
             raise Exception("Error in Alert.get_all(): unexpected response from server")
         return [Alert(kwdict=a) for a in result]
