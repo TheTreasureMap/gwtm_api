@@ -1,188 +1,278 @@
 # gwtm_api
 
-A python wrapper for the [Gravitational Wave Treasure Map](http://treasuremap.space).
-In order to interact with the web API, you will need to [register](http://treasuremap.space/register) an account with the GWTM. Once verified you will recieve an `API_TOKEN` to pass into all api endpoints.
+A Python wrapper for the [Gravitational Wave Treasure Map](https://treasuremap.space).
 
+To interact with the API, [register](https://treasuremap.space/register) an account. Once verified you will receive an `API_TOKEN` shown on your profile page.
+
+**Using pip:**
+```bash
+python -m venv gwtm_env
+source gwtm_env/bin/activate   # Windows: gwtm_env\Scripts\activate
+pip install gwtm_api
+```
+
+**Using conda:**
 ```bash
 conda create -n gwtm_api python=3.11
 conda activate gwtm_api
-python -m pip install gwtm_api
+pip install gwtm_api
 ```
 
+Full API documentation and parameter reference is available at [https://treasuremap.space/docs](https://treasuremap.space/docs).
 
-## Pointings:
-Full api documentation with detailed examples can be found at [GWTM API Documentation](http://treasuremap.space/documentation).
-### GET
+---
+
+## Configuration
+
+Call `configure()` once at the start of your script. All subsequent API calls use the client created here — no need to pass credentials to every method.
+
 ```python
 import gwtm_api
 
-pointings = gwtm_api.Pointing.get(graceid="GW190814", instruments=["ZTF"], api_token=API_TOKEN)
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
 ```
+
+To point at a different server (e.g. a development instance), pass `base_url`:
+
+```python
+gwtm_api.configure(api_token='YOUR_API_TOKEN', base_url='https://dev.treasuremap.space')
+```
+
+You can also set credentials via environment variables and call `configure()` with no arguments:
+
+```bash
+export GWTM_API_TOKEN=YOUR_API_TOKEN
+export GWTM_BASE_URL=https://treasuremap.space  # optional, this is the default
+```
+
+```python
+gwtm_api.configure()
+```
+
+---
+
+## Pointings
+
+### GET
+
+```python
+import gwtm_api
+
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
+
+pointings = gwtm_api.Pointing.get(
+    graceid='GW190814',
+    instruments=['ZTF'],
+)
+```
+
+Filters can be combined freely — by instrument, status, time range, band, depth, and spectral regime. All list parameters accept Python lists directly.
 
 ### POST
-Submit single, or list of `gwtm_api.Pointing` objects.
+
+Submit a single pointing or a batch:
+
 ```python
+import datetime
 import gwtm_api
 
-#submit single
-p = gwtm_api.Pointing(
-    ra=15,
-    dec=-24,
-    instrumentid = 10,
-    time = datetime.datetime.now(),
-    status = 'completed',
-    depth = 18.5,
-    depth_unit = 'ab_mag', 
-    pos_angle=50,
-    band = 'r'
-)
-p.post(graceid="GRACEID", api_token=API_TOKEN)
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
 
-#submit list
+# Single pointing
+p = gwtm_api.Pointing(
+    ra=15.0,
+    dec=-24.0,
+    instrumentid=10,
+    time=datetime.datetime.now(),
+    status='completed',
+    depth=18.5,
+    depth_unit='ab_mag',
+    pos_angle=50,
+    band='r'
+)
+p.post(graceid='GRACEID')
+
+# Batch
 batch = [
-  gwtm_api.Pointing(...),
-  gwtm_api.Pointing(...)
+    gwtm_api.Pointing(...),
+    gwtm_api.Pointing(...)
 ]
-gwtm_api.Pointing.batch_post(pointings=batch, graceid="GRACEID", api_token=API_TOKEN)
+gwtm_api.Pointing.batch_post(pointings=batch, graceid='GRACEID')
 ```
+
+---
 
 ## Candidates
-Get and Post Event Candidates through the API:
+
 ### GET
+
 ```python
 import gwtm_api
-from datetime import datetime
 
-candidates = gwtm_api.Candidate.get(graceid="GW190814", api_token=API_TOKEN)
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
+
+candidates = gwtm_api.Candidate.get(graceid='GW190814')
 ```
+
 ### POST
-Submit single, or list of `gwtm_api.Candidate` objects.
+
 ```python
+import datetime
 import gwtm_api
 
-#submit single
-candidate = gwtm_api.Candidate(
-    ra=15,
-    dec=-24,
-    discovery_date=datetime.datetime.now(),
-    discovery_magnitude = 18,
-    magnitude_bandpass = "r",
-    magnitude_unit = "ab_mag",
-    associated_galaxy = "some galaxy name",
-    associated_galaxy_redshift = 0.3
-)
-candidate.post(graceid="GRACEID", api_token=API_TOKEN)
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
 
-#submit list
+# Single candidate
+candidate = gwtm_api.Candidate(
+    ra=15.0,
+    dec=-24.0,
+    discovery_date=datetime.datetime.now(),
+    discovery_magnitude=18,
+    magnitude_bandpass='r',
+    magnitude_unit='ab_mag',
+    associated_galaxy='some galaxy name',
+    associated_galaxy_redshift=0.3
+)
+candidate.post(graceid='GRACEID')
+
+# Batch
 batch = [
-  gwtm_api.Candidate(...),
-  gwtm_api.Candidate(...)
+    gwtm_api.Candidate(...),
+    gwtm_api.Candidate(...)
 ]
-gwtm_api.Pointing.batch_post(candidates=batch, graceid="GRACEID", api_token=API_TOKEN)
+gwtm_api.Candidate.batch_post(candidates=batch, graceid='GRACEID')
 ```
 
 ### PUT
-Update a GWTM candidate record
+
 ```python
 import gwtm_api
-candidate = gwtm_api.Candidate.get(api_token=API_TOKEN, id=CANDIDATE_ID)
-my_candidate = candidate[0]
-update_payload = {
-    "tns_name": "AT2017gfo",
-    "tns_url": "https://www.wis-tns.org/object/2017gfo"
-    "associated_galaxy": "NGC 4993"
-    "associated_galaxy_redshift": 0.009727
-}
-my_candidate.put(api_token=API_TOKEN, payload=update_payload)
 
-#or similarly
-candidate = gwtm_api.Candidate(id=CANDIDATE_ID, api_token=API_TOKEN) #this will envoke the GET endpoint if it has an id and api token
-candidate.tns_name = "AT2017gfo"
-candidate.tns_url = "https://www.wis-tns.org/object/2017gfo"
-candidate.associated_galaxy = "NGC 4993"
-candidate.associated_galaxy_redshift = 0.009727
-candidate.put(api_token=API_TOKEN)
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
+
+candidate = gwtm_api.Candidate.get(id=CANDIDATE_ID)[0]
+candidate.put(payload={
+    'tns_name': 'AT2017gfo',
+    'tns_url': 'https://www.wis-tns.org/object/2017gfo',
+    'associated_galaxy': 'NGC 4993',
+    'associated_galaxy_redshift': 0.009727
+})
 ```
 
-### Delete
+### DELETE
+
 ```python
-candidate = gwtm_api.Candidate(id=21, api_token=API_TOKEN)
-candidate.delete(api_token=API_TOKEN)
+import gwtm_api
 
-#or batch delete with a list of ids
-gwtm_api.Candidate.batch_delete(api_token=API_TOKEN, ids=[id1, id2....], verbose=True)
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
+
+candidate = gwtm_api.Candidate.get(id=CANDIDATE_ID)[0]
+candidate.delete()
+
+# Batch delete
+gwtm_api.Candidate.batch_delete(ids=[id1, id2, ...])
 ```
+
+---
 
 ## Instruments
-Query for instrument information that have been submitted to the Treasure Map
+
 ```python
 import gwtm_api
 
-instruments = gwtm_api.Instrument.get(name="ZTF", api_token=API_TOKEN)
-```
-You can pass the parameter `include_footprint=True` into the get request, and receive the polygon information for the instrument footprint.
-We've included basic polygon manipulation functionality with this footprint class as well. When combined with the pointing information you can project the footprint on the sky, and simulate reported coverage yourself.
-```python
-import gwtm_api
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
 
-ztf = gwtm_api.Instrument.get(name="ZTF", include_footprint=True, api_token=API_TOKEN)[0]
-ztf.project(ra, dec, pos_angle)
+instruments = gwtm_api.Instrument.get(names=['ZTF'])
 ```
+
+Pass `include_footprint=True` to receive polygon data for the instrument footprint, and project it onto the sky at any pointing:
+
+```python
+ztf = gwtm_api.Instrument.get(names=['ZTF'], include_footprint=True)[0]
+projected = ztf.project(ra, dec, pos_angle)
+```
+
+---
 
 ## Event Tools
-For a given GW event, you can utlize the the `event_tools` library to perform some analytics of a GW event with the data supported on the Treasure Map.
+
+For a given GW event, you can use the `event_tools` library to perform analytics with the data on the Treasure Map.
 
 ### Visualizing coverage
+
 ```python
 import gwtm_api
 
-gwtm_api.event_tools.plot_coverage(graceid="GW190814", api_token=API_TOKEN)
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
+
+gwtm_api.event_tools.plot_coverage(graceid='GW190814')
 ```
+
 <img width="627" alt="image" src="https://github.com/TheTreasureMap/gwtm_api/assets/25805244/a6c0fa96-d991-46dc-a75e-472658dde873">
 
-The `plot_coverage` function allows you to pass in your own list of pointings, along with caching the queried results so you don't have to hit the API for large queries every time.
+Pass in your own pointings and enable caching to avoid repeated API calls:
 
 ```python
-pointings = gwtm_api.Pointing.get(graceid = "GW190814", instrument="ZTF", api_token=API_TOKEN, status='completed')
+pointings = gwtm_api.Pointing.get(
+    graceid='GW190814',
+    instruments=['ZTF'],
+    status='completed',
+)
 gwtm_api.event_tools.plot_coverage(
-    graceid="GW190814",
-    api_token=API_TOKEN,
+    graceid='GW190814',
     pointings=pointings,
     cache=True
 )
 ```
 
-### Coverage Calculation
-Calculate the total probability covered for a given GW Event. You can pass in a list of pointings for the event, or it will default to all pointings for the event. Returns the total probability and total area (deg^2) covered by the list of pointings
+### Coverage calculation
+
+Returns total probability and total area (deg²) covered by the pointings:
 
 ```python
 total_prob, total_area = gwtm_api.event_tools.calculate_coverage(
-    graceid="GW190814",
-    api_token=API_TOKEN,
+    graceid='GW190814',
     pointings=pointings,
     cache=True
 )
 ```
 
-### Renormalize Skymap
-Renormalize an event's skymap based on a list of pointings (or the entire GW event's completed pointings). It takes the list of pointings and sets the overlapping skymap pixel probability to zero, then renormalizes the skymap. Returns an NDArray that can be imported into healpy
+### Renormalize skymap
+
+Sets overlapping skymap pixel probability to zero for observed regions and renormalises. Returns an NDArray compatible with healpy:
 
 ```python
 renormalized_skymap = gwtm_api.event_tools.renormalize_skymap(
-    graceid="GW190814",
-    api_token=API_TOKEN,
+    graceid='GW190814',
     pointings=pointings,
     cache=True
 )
 ```
 
-### Candidate Coerage
-For a given `candidate`, find which instruments have `pointing` footprints that overlap with the candidate's position. The user can potentially constrain which instruments have observed a candidate pre/post post discovery. User's can pass in a list of `pointings`, or it will default to all `pointings` for the `candidate's` associated graceid. The function also accepts a `distance_thresh` (in degrees) to limit the calculation to only the pointings centered within the threshold distance from the candidate. 
+### Candidate coverage
+
+Find which instrument pointings overlap with a candidate's position:
 
 ```python
-my_candidate = gwtm_api.Candidate.get(...)
-pointings_list = gwtm_api.event_tools.candidate_coverage(
-    api_token=API_TOKEN,
-    candidate=my_candidate
-)
+my_candidate = gwtm_api.Candidate.get(graceid='GW190814')[0]
+covering_pointings = gwtm_api.event_tools.candidate_coverage(candidate=my_candidate)
 ```
+
+---
+
+## For contributors
+
+The package uses a two-layer architecture:
+
+- **`src/gwtm_api/{pointing,alert,instrument,candidate}.py`** — hand-written, user-facing classes with a stable, friendly interface
+- **`src/gwtm_api/_generated/`** — HTTP transport layer auto-generated from the server's OpenAPI spec (not committed to the repo)
+
+### Setup after cloning
+
+```bash
+pip install -e '.[dev]'
+```
+
+### When the server API changes
+
+Update the relevant wrapper methods in `src/gwtm_api/`, bump the version in `pyproject.toml`, and create a GitHub Release — publishing to PyPI happens automatically.

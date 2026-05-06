@@ -15,10 +15,16 @@ requires-python = "<3.12"
 dependencies = [
   "astropy",
   "healpy",
-  "requests",
+  "httpx>=0.20.0",
   "ligo.skymap",
   "matplotlib",
   "pandas"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-mock"
 ]
 
 classifiers = [
