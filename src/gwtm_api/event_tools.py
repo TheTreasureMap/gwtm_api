@@ -13,13 +13,13 @@ import ligo.skymap.postprocess
 
 from . import Pointing, Instrument, Footprint, Candidate
 from .alert import Alert as Alert
+from .core import _client_factory as transport
 from .core.util import instrument_color, gc_dist
 
 
 def plot_coverage(graceid: str, pointings: List[Pointing] = None,
     cache=False, projection='astro hours mollweide',
     api_token: str = None) -> None:
-    from .core import _client_factory as transport
     if api_token:
         transport.configure(api_token=api_token)
     if pointings is None:
@@ -98,7 +98,6 @@ def plot_coverage(graceid: str, pointings: List[Pointing] = None,
 
 def calculate_coverage(graceid: str, pointings: List[Pointing] = None,
     cache=False, approximate=True, api_token: str = None) -> Tuple[float, float]:
-    from .core import _client_factory as transport
     if api_token:
         transport.configure(api_token=api_token)
     if pointings is None:
@@ -126,6 +125,9 @@ def calculate_coverage(graceid: str, pointings: List[Pointing] = None,
         instrument_enumeration_dict[iid] = i
 
     skymap_nside = hp.npix2nside(len(skymap))
+
+    if not instrument_ids:
+        return 0.0, 0.0
 
     qps = []
     deduped_indices = []
@@ -171,7 +173,6 @@ def calculate_coverage(graceid: str, pointings: List[Pointing] = None,
 
 def renormalize_skymap(graceid: str, pointings: List[Pointing] = None,
     cache=False, api_token: str = None) -> Any:
-    from .core import _client_factory as transport
     if api_token:
         transport.configure(api_token=api_token)
     if pointings is None:
@@ -186,6 +187,9 @@ def renormalize_skymap(graceid: str, pointings: List[Pointing] = None,
 
     instrument_ids = list(set([x.instrumentid for x in pointings]))
     inst_footprints = Instrument.get(ids=instrument_ids, include_footprint=True)
+
+    if not instrument_ids:
+        return skymap
 
     skymap_nside = hp.npix2nside(len(skymap))
     qps = []
@@ -230,8 +234,6 @@ def renormalize_skymap(graceid: str, pointings: List[Pointing] = None,
 
 def renormed_skymap_contours(graceid: str, pointings: List[Pointing] = None,
     cache=False, api_token: str = None) -> Any:
-
-    from .core import _client_factory as transport
     if api_token:
         transport.configure(api_token=api_token)
     if pointings is None:

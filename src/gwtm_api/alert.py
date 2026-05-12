@@ -105,7 +105,7 @@ class Alert(apimodels._Table):
     def get_all(id: int = None, graceid: str = None, api_token: str = None):
         if api_token:
             transport.configure(api_token=api_token)
-        result = transport.get('/query_alerts', params={'id': id, 'graceid': graceid})
+        result = transport.get('/query_alerts', params={'graceid': graceid})
         if not isinstance(result, list):
             raise Exception("Error in Alert.get_all(): unexpected response from server")
         return [Alert(kwdict=a) for a in result]

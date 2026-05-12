@@ -103,16 +103,17 @@ class Candidate(apimodels._Table):
         dd = (self.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
               if isinstance(self.discovery_date, datetime.datetime) else self.discovery_date)
         return {
-            'candidate_name': self.candidate_name or '',
+            'candidate_name': self.candidate_name if self.candidate_name is not None else '',
             'discovery_date': dd,
-            'discovery_magnitude': self.discovery_magnitude or 0.0,
-            'magnitude_unit': _enum_name(self.magnitude_unit) or 'ab_mag',
+            'discovery_magnitude': self.discovery_magnitude if self.discovery_magnitude is not None else 0.0,
+            'magnitude_unit': _enum_name(self.magnitude_unit) if self.magnitude_unit is not None else 'ab_mag',
             'position': self.position,
             'ra': self.ra,
             'dec': self.dec,
             'tns_name': self.tns_name,
             'tns_url': self.tns_url,
             'magnitude_bandpass': _enum_name(self.magnitude_bandpass),
+            'magnitude_central_wave': self.magnitude_central_wave,
             'magnitude_bandwidth': self.magnitude_bandwidth,
             'wavelength_regime': self.wavelength_regime,
             'wavelength_unit': _enum_name(self.wavelength_unit),
@@ -199,7 +200,9 @@ class Candidate(apimodels._Table):
             transport.configure(api_token=api_token)
         if not self.id:
             raise Exception("Candidate does not have an id")
-        result = transport.put('/candidate', json={'id': self.id, 'candidate': payload or self._to_dict()})
+        candidate_data = payload.copy() if payload is not None else self._to_dict()
+        candidate_data.pop('id', None)
+        result = transport.put('/candidate', json={'id': self.id, 'candidate': candidate_data})
         if verbose:
             print(result)
         fetched = Candidate.get(id=self.id)
