@@ -301,6 +301,8 @@ class _TableValidation():
                         if isinstance(value, int):
                             eval = mf.type(value).name
                             self.valid_inst[key] = eval
+                    elif value is None:
+                        self.valid_inst[key] = None
                     else:
                         _ = mf.type(value)
                         self.valid_inst[key] = mf.type(value)

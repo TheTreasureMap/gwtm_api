@@ -115,3 +115,89 @@ class TestCandidatePutDelete:
         c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE, 'id': None})
         with pytest.raises(Exception, match="does not have an id"):
             c.put()
+
+    def test_put_sends_self_id_at_top_level(self):
+        c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE})
+        with patch(PUT_PATH, return_value={}) as mock_put, \
+             patch(GET_PATH, return_value=[CANDIDATE_FIXTURE]):
+            c.put()
+        assert mock_put.call_args.kwargs['json']['id'] == 1
+
+    def test_put_strips_id_from_caller_payload(self):
+        c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE})
+        with patch(PUT_PATH, return_value={}) as mock_put, \
+             patch(GET_PATH, return_value=[CANDIDATE_FIXTURE]):
+            c.put(payload={'id': 999, 'tns_name': 'AT2019abc'})
+        sent = mock_put.call_args.kwargs['json']
+        assert sent['id'] == 1
+        assert 'id' not in sent['candidate']
+
+    def test_put_uses_to_dict_when_no_payload(self):
+        c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE})
+        with patch(PUT_PATH, return_value={}) as mock_put, \
+             patch(GET_PATH, return_value=[CANDIDATE_FIXTURE]):
+            c.put()
+        sent_candidate = mock_put.call_args.kwargs['json']['candidate']
+        assert 'candidate_name' in sent_candidate
+
+
+class TestCandidateInitWithId:
+
+    def test_init_with_id_calls_get(self):
+        with patch(GET_PATH, return_value=[CANDIDATE_FIXTURE]) as mock_get:
+            c = gwtm_api.Candidate(id=1)
+        assert mock_get.call_args.args[0] == '/candidate'
+        assert c.id == 1
+        assert c.graceid == 'S190425z'
+
+    def test_init_with_id_raises_when_not_found(self):
+        with patch(GET_PATH, return_value=[]):
+            with pytest.raises(Exception, match="No candidate found"):
+                gwtm_api.Candidate(id=999)
+
+
+class TestCandidateToDict:
+
+    def test_none_name_becomes_empty_string(self):
+        c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE, 'candidate_name': None})
+        d = c._to_dict()
+        assert d['candidate_name'] == ''
+
+    def test_zero_magnitude_preserved(self):
+        c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE, 'discovery_magnitude': 0.0})
+        d = c._to_dict()
+        assert d['discovery_magnitude'] == 0.0
+
+    def test_none_magnitude_defaults_to_zero(self):
+        c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE, 'discovery_magnitude': None})
+        d = c._to_dict()
+        assert d['discovery_magnitude'] == 0.0
+
+    def test_includes_magnitude_central_wave(self):
+        c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE, 'magnitude_central_wave': 6200.0})
+        d = c._to_dict()
+        assert d['magnitude_central_wave'] == 6200.0
+
+
+class TestCandidatePostBody:
+
+    def test_post_sends_candidate_key(self):
+        with patch(POST_PATH, return_value={'candidate_ids': [1]}) as mock_post, \
+             patch(GET_PATH, return_value=[CANDIDATE_FIXTURE]):
+            c = gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE})
+            c.post(graceid='S190425z')
+        body = mock_post.call_args.kwargs['json']
+        assert 'graceid' in body
+        assert 'candidate' in body
+        assert 'candidates' not in body
+
+    def test_batch_post_sends_candidates_key(self):
+        with patch(POST_PATH, return_value={'candidate_ids': [1]}) as mock_post, \
+             patch(GET_PATH, return_value=[CANDIDATE_FIXTURE]):
+            gwtm_api.Candidate.batch_post(
+                candidates=[gwtm_api.Candidate(kwdict={**CANDIDATE_FIXTURE})],
+                graceid='S190425z'
+            )
+        body = mock_post.call_args.kwargs['json']
+        assert 'candidates' in body
+        assert 'candidate' not in body

@@ -123,3 +123,61 @@ class TestPointingPost:
                                   depth_unit='ab_mag', band='r')
             p.post(graceid='S190425z')
         assert mock_get.call_args.args[0] == '/pointings'
+
+    def test_doi_params_absent_when_not_provided(self):
+        with patch(POST_PATH, return_value={'pointing_ids': [42]}) as mock_post, \
+             patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            p = gwtm_api.Pointing(ra=10.0, dec=-20.0, instrumentid=10,
+                                  time=datetime.datetime(2025, 1, 1),
+                                  status='planned', depth=18.0,
+                                  depth_unit='ab_mag', band='r')
+            p.post(graceid='S190425z')
+        body = mock_post.call_args.kwargs['json']
+        assert 'request_doi' not in body
+        assert 'doi_url' not in body
+        assert 'creators' not in body
+        assert 'doi_group_id' not in body
+
+    def test_doi_params_sent_when_provided(self):
+        with patch(POST_PATH, return_value={'pointing_ids': [42]}) as mock_post, \
+             patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            p = gwtm_api.Pointing(ra=10.0, dec=-20.0, instrumentid=10,
+                                  time=datetime.datetime(2025, 1, 1),
+                                  status='planned', depth=18.0,
+                                  depth_unit='ab_mag', band='r')
+            p.post(graceid='S190425z', request_doi=True,
+                   doi_url='https://doi.org/10.1234', doi_group_id=5)
+        body = mock_post.call_args.kwargs['json']
+        assert body['request_doi'] is True
+        assert body['doi_url'] == 'https://doi.org/10.1234'
+        assert body['doi_group_id'] == 5
+
+    def test_central_wave_and_bandwidth_not_in_get_params(self):
+        with patch(GET_PATH, return_value=[]) as mock:
+            gwtm_api.Pointing.get(graceid='S190425z', central_wave=5000.0, bandwidth=100.0)
+        params = mock.call_args.kwargs['params']
+        assert 'central_wave' not in params
+        assert 'bandwidth' not in params
+
+
+class TestRequestDoi:
+
+    def test_calls_correct_endpoint(self):
+        with patch(POST_PATH, return_value={'doi_url': 'https://doi.org/10.1234'}) as mock:
+            result = gwtm_api.Pointing.request_doi(graceid='S190425z')
+        assert mock.call_args.args[0] == '/request_doi'
+
+    def test_returns_doi_url(self):
+        with patch(POST_PATH, return_value={'doi_url': 'https://doi.org/10.1234'}):
+            result = gwtm_api.Pointing.request_doi(graceid='S190425z')
+        assert result == 'https://doi.org/10.1234'
+
+    def test_raises_without_graceid_id_or_ids(self):
+        with pytest.raises(Exception, match="Must specify"):
+            gwtm_api.Pointing.request_doi()
+
+    def test_doi_group_id_sent_as_string(self):
+        with patch(POST_PATH, return_value={'doi_url': 'https://doi.org/10.1234'}) as mock:
+            gwtm_api.Pointing.request_doi(graceid='S190425z', doi_group_id='42')
+        body = mock.call_args.kwargs['json']
+        assert isinstance(body['doi_group_id'], str)

@@ -113,6 +113,9 @@ def calculate_coverage(graceid: str, pointings: List[Pointing] = None,
 
     instrument_ids = list(set([x.instrumentid for x in pointings]))
 
+    if not instrument_ids:
+        return 0.0, 0.0
+
     if DECam_id in instrument_ids:
         print("Warning: DECam footprint will be automatically approximated")
         approximate = True
@@ -125,9 +128,6 @@ def calculate_coverage(graceid: str, pointings: List[Pointing] = None,
         instrument_enumeration_dict[iid] = i
 
     skymap_nside = hp.npix2nside(len(skymap))
-
-    if not instrument_ids:
-        return 0.0, 0.0
 
     qps = []
     deduped_indices = []
@@ -186,11 +186,11 @@ def renormalize_skymap(graceid: str, pointings: List[Pointing] = None,
     skymap = Alert.fetch_skymap(graceid=graceid, cache=cache)
 
     instrument_ids = list(set([x.instrumentid for x in pointings]))
-    inst_footprints = Instrument.get(ids=instrument_ids, include_footprint=True)
 
     if not instrument_ids:
         return skymap
 
+    inst_footprints = Instrument.get(ids=instrument_ids, include_footprint=True)
     skymap_nside = hp.npix2nside(len(skymap))
     qps = []
     deduped_indices = []
