@@ -16,9 +16,14 @@ from .alert import Alert as Alert
 from .core.util import instrument_color, gc_dist
 
 
-def plot_coverage(graceid: str, pointings: List[Pointing] = [],
-    cache=False, projection='astro hours mollweide') -> None:
-
+def plot_coverage(graceid: str, pointings: List[Pointing] = None,
+    cache=False, projection='astro hours mollweide',
+    api_token: str = None) -> None:
+    from .core import _client_factory as transport
+    if api_token:
+        transport.configure(api_token=api_token)
+    if pointings is None:
+        pointings = []
     if len(pointings) == 0 and graceid is None:
         raise Exception("Pointings list or graceid is required")
 
@@ -64,7 +69,7 @@ def plot_coverage(graceid: str, pointings: List[Pointing] = [],
 
         for j, arr in enumerate(polygon_arr):
             label = (inst_footprint.nickname if inst_footprint.nickname is not None
-                     else inst_footprint.name) if j == 0 else None
+                     else inst_footprint.instrument_name) if j == 0 else None
             poly = Polygon(
                 np.asarray(arr),
                 transform=ax.get_transform('world'),
@@ -91,8 +96,13 @@ def plot_coverage(graceid: str, pointings: List[Pointing] = [],
     plt.show()
 
 
-def calculate_coverage(graceid: str, pointings: List[Pointing] = [],
-    cache=False, approximate=True) -> Tuple[float, float]:
+def calculate_coverage(graceid: str, pointings: List[Pointing] = None,
+    cache=False, approximate=True, api_token: str = None) -> Tuple[float, float]:
+    from .core import _client_factory as transport
+    if api_token:
+        transport.configure(api_token=api_token)
+    if pointings is None:
+        pointings = []
     DECam_id = 38
     if len(pointings) == 0 and graceid is None:
         raise Exception("Pointings list or graceid is required")
@@ -118,6 +128,7 @@ def calculate_coverage(graceid: str, pointings: List[Pointing] = [],
     skymap_nside = hp.npix2nside(len(skymap))
 
     qps = []
+    deduped_indices = []
     NSIDE4area = 512
     pixarea = hp.nside2pixarea(NSIDE4area, degrees=True)
 
@@ -158,9 +169,13 @@ def calculate_coverage(graceid: str, pointings: List[Pointing] = [],
     return prob, area
 
 
-def renormalize_skymap(graceid: str, pointings: List[Pointing] = [],
-    cache=False) -> Any:
-
+def renormalize_skymap(graceid: str, pointings: List[Pointing] = None,
+    cache=False, api_token: str = None) -> Any:
+    from .core import _client_factory as transport
+    if api_token:
+        transport.configure(api_token=api_token)
+    if pointings is None:
+        pointings = []
     if len(pointings) == 0 and graceid is None:
         raise Exception("Pointings list or graceid is required")
 
@@ -174,6 +189,7 @@ def renormalize_skymap(graceid: str, pointings: List[Pointing] = [],
 
     skymap_nside = hp.npix2nside(len(skymap))
     qps = []
+    deduped_indices = []
 
     for i in instrument_ids:
         polygon_arr = []
@@ -212,9 +228,14 @@ def renormalize_skymap(graceid: str, pointings: List[Pointing] = [],
     return normed_skymap
 
 
-def renormed_skymap_contours(graceid: str, pointings: List[Pointing] = [],
-    cache=False) -> Any:
+def renormed_skymap_contours(graceid: str, pointings: List[Pointing] = None,
+    cache=False, api_token: str = None) -> Any:
 
+    from .core import _client_factory as transport
+    if api_token:
+        transport.configure(api_token=api_token)
+    if pointings is None:
+        pointings = []
     normed_skymap = renormalize_skymap(graceid=graceid, pointings=pointings, cache=cache)
 
     i = np.flipud(np.argsort(normed_skymap))

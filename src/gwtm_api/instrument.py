@@ -106,7 +106,7 @@ class Instrument(apimodels._Table):
             'ids': _encode_list_param(ids),
             'name': name,
             'names': _encode_list_param(names),
-            'type': type,
+            'type': int(apimodels.instrument_type[type]) if isinstance(type, str) else (int(type) if isinstance(type, apimodels.instrument_type) else type),
         })
         if not isinstance(result, list):
             raise Exception("Error in Instrument.get(): unexpected response from server")

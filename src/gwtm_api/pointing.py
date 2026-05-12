@@ -129,7 +129,14 @@ class Pointing(apimodels._Table):
              api_token: str = None):
         if api_token:
             transport.configure(api_token=api_token)
-        result = transport.post('/pointings', json={'graceid': graceid, 'pointing': self._to_dict()})
+        result = transport.post('/pointings', json={
+            'graceid': graceid,
+            'pointing': self._to_dict(),
+            'request_doi': request_doi,
+            'doi_url': doi_url,
+            'creators': creators,
+            'doi_group_id': doi_group_id,
+        })
         if verbose:
             print(result)
         fetched = Pointing.get(id=result['pointing_ids'][0])
@@ -145,6 +152,10 @@ class Pointing(apimodels._Table):
         result = transport.post('/pointings', json={
             'graceid': graceid,
             'pointings': [p._to_dict() for p in pointings],
+            'request_doi': request_doi,
+            'doi_url': doi_url,
+            'creators': creators,
+            'doi_group_id': doi_group_id,
         })
         if verbose:
             print(result)

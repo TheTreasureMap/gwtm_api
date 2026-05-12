@@ -71,3 +71,14 @@ class TestInstrumentGet:
         with patch(GET_PATH, return_value=[]) as mock:
             gwtm_api.Instrument.get()
         assert mock.call_args.args[0] == '/instruments'
+
+    def test_type_enum_serialised_as_int(self):
+        from gwtm_api.core.apimodels import instrument_type
+        with patch(GET_PATH, return_value=[]) as mock:
+            gwtm_api.Instrument.get(type=instrument_type.photometric)
+        assert mock.call_args.kwargs['params']['type'] == 1
+
+    def test_type_string_serialised_as_int(self):
+        with patch(GET_PATH, return_value=[]) as mock:
+            gwtm_api.Instrument.get(type='photometric')
+        assert mock.call_args.kwargs['params']['type'] == 1

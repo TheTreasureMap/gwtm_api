@@ -49,7 +49,7 @@ You can also set credentials via environment variables and call `configure()` wi
 
 ```bash
 export GWTM_API_TOKEN=YOUR_API_TOKEN
-export GWTM_BASE_URL=https://treasuremap.space  # optional, this is the default
+export GWTM_BASE_URL=https://treasuremap.space/api/v1  # optional, this is the default
 ```
 
 ```python

@@ -199,7 +199,7 @@ class Candidate(apimodels._Table):
             transport.configure(api_token=api_token)
         if not self.id:
             raise Exception("Candidate does not have an id")
-        result = transport.put('/candidate', json={'candidate': payload or self._to_dict()})
+        result = transport.put('/candidate', json={'id': self.id, 'candidate': payload or self._to_dict()})
         if verbose:
             print(result)
         fetched = Candidate.get(id=self.id)
