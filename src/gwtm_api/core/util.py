@@ -1,4 +1,15 @@
+import json
+from typing import Optional
 import numpy as np
+
+
+def _encode_list_param(value) -> Optional[str]:
+    """Encode a list parameter as a JSON string for the server's query param parser."""
+    if value is None:
+        return None
+    if isinstance(value, list):
+        return json.dumps(value)
+    return str(value)
 
 COLORS = [
 	"#000000", "#FFFF00", "#1CE6FF", "#FF34FF", "#FF4A46", "#008941", "#006FA6", "#A30059",
@@ -21,7 +32,8 @@ COLORS = [
 
 def non_none_locals(locals: dict) -> dict:
     ignore_locals = [
-        "self", "__class__", "base", "api_version", "urlencode", "debug", "cache"
+        "self", "__class__", "base", "api_version", "urlencode", "debug", "cache",
+        "api_token", "verbose", "kwdict"
     ]
 
     non_none_keys = [key for key, value in locals.items() if value is not None and key not in ignore_locals]

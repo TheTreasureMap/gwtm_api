@@ -1,10 +1,13 @@
 from __future__ import annotations
-import json
 import datetime
 from typing import List, Union
-from .core import baseapi
+
 from .core import apimodels
 from .core import util
+from .core.util import _encode_list_param
+from .core import _client_factory as transport
+from .pointing import _enum_name
+
 
 class Candidate(apimodels._Table):
     id: int = None
@@ -32,8 +35,7 @@ class Candidate(apimodels._Table):
     associated_galaxy_redshift: float = None
     associated_galaxy_distance: float = None
 
-    def __init__(
-            self, 
+    def __init__(self,
             id: int = None,
             graceid: str = None,
             candidate_name: str = None,
@@ -60,34 +62,27 @@ class Candidate(apimodels._Table):
             api_token: str = None,
             kwdict=None
         ):
+        if api_token:
+            transport.configure(api_token=api_token)
 
         self.position = position
+        selfdict = kwdict if kwdict is not None else util.non_none_locals(locals=locals())
 
-        if kwdict is not None:
-            selfdict = kwdict
-        else:
-            selfdict = util.non_none_locals(locals=locals())
-
-        #if user passes in an ID, then prepopulate with a get request
         if id:
-            if api_token:
-                payload = Candidate.get(api_token=api_token, id=id)
-                if len(payload):
-                    selfdict = payload[0].__dict__
-                else:
-                    raise Exception(f"No candidate found with id: {id}")
+            payload = Candidate.get(id=id)
+            if payload:
+                selfdict = payload[0].__dict__
             else:
-                raise Exception("api_token required")
-            
+                raise Exception(f"No candidate found with id: {id}")
+
         super().__init__(payload=selfdict)
 
-        if "position" in selfdict.keys():
+        if "position" in selfdict:
             self._sanatize_pointing()
-        elif all([x in selfdict.keys() for x in ["ra", "dec"]]):
+        elif "ra" in selfdict and "dec" in selfdict:
             self._sanatize_ra_dec()
         else:
-            raise Exception("Positional arguments are required. Must be decimal format ra, dec, or geometry type \"POINT(ra dec)\"")
-
+            raise Exception("Positional arguments are required: ra/dec or POINT(ra dec)")
 
     def _sanatize_pointing(self):
         if self.position is not None:
@@ -95,215 +90,140 @@ class Candidate(apimodels._Table):
                 self.ra = float(self.position.split('(')[1].split(')')[0].split()[0])
                 self.dec = float(self.position.split('(')[1].split(')')[0].split()[1])
             except:  # noqa: E722
-                raise Exception("Invalid position argument. Must be 'POINT (\{ra\} \{dec\})'.")
-
+                raise Exception("Invalid position. Must be 'POINT ({ra} {dec})'.")
 
     def _sanatize_ra_dec(self):
         if self.position is None:
-            if all([isinstance(x, float) for x in [self.ra, self.dec]]):
+            if all(isinstance(x, float) for x in [self.ra, self.dec]):
                 self.position = f"POINT ({self.ra} {self.dec})"
             else:
-                raise Exception("Invalid format for ra/dec. Both must be float")
+                raise Exception("ra and dec must be floats")
 
+    def _to_dict(self) -> dict:
+        dd = (self.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
+              if isinstance(self.discovery_date, datetime.datetime) else self.discovery_date)
+        return {
+            'candidate_name': self.candidate_name if self.candidate_name is not None else '',
+            'discovery_date': dd,
+            'discovery_magnitude': self.discovery_magnitude if self.discovery_magnitude is not None else 0.0,
+            'magnitude_unit': _enum_name(self.magnitude_unit) if self.magnitude_unit is not None else 'ab_mag',
+            'position': self.position,
+            'ra': self.ra,
+            'dec': self.dec,
+            'tns_name': self.tns_name,
+            'tns_url': self.tns_url,
+            'magnitude_bandpass': _enum_name(self.magnitude_bandpass),
+            'magnitude_central_wave': self.magnitude_central_wave,
+            'magnitude_bandwidth': self.magnitude_bandwidth,
+            'wavelength_regime': self.wavelength_regime,
+            'wavelength_unit': _enum_name(self.wavelength_unit),
+            'frequency_regime': self.frequency_regime,
+            'frequency_unit': _enum_name(self.frequency_unit),
+            'energy_regime': self.energy_regime,
+            'energy_unit': _enum_name(self.energy_unit),
+            'associated_galaxy': self.associated_galaxy,
+            'associated_galaxy_redshift': self.associated_galaxy_redshift,
+            'associated_galaxy_distance': self.associated_galaxy_distance,
+        }
 
-    def post(
-            self, api_token: str, graceid: str = None,
-            base: str = "https://treasuremap.space/api/", api_version: str ="v1",
-            verbose = False
-        ):
+    def post(self, graceid: str = None, verbose=False, api_token: str = None):
+        if api_token:
+            transport.configure(api_token=api_token)
         if graceid is None:
             graceid = self.graceid
-        
-        post_dict = util.non_none_locals(locals=locals())
-
-        self.discovery_date = self.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
-        post_dict["candidates"]=[self.__dict__]
-        post_dict["graceid"]=graceid
-
-        r_json = {
-            "d_json":post_dict
-        }
-
-        api = baseapi.api(target="candidate")
-        req = api._post(r_json=r_json)
-
-        if req.status_code == 200:
-            request_json = json.loads(req.text)
-            if verbose:
-                print(request_json)
-            id = request_json["candidate_ids"][0]
-            self.__init__(kwdict=Candidate.get(api_token=api_token, id=id)[0].__dict__)
-        else:
-            raise Exception(f"Error in Candidate.post(). Request: {req.text[0:1000]}")
-
+        result = transport.post('/candidate', json={'graceid': graceid, 'candidate': self._to_dict()})
+        if verbose:
+            print(result)
+        fetched = Candidate.get(id=result['candidate_ids'][0])
+        self.__init__(kwdict=fetched[0].__dict__)
 
     @staticmethod
-    def batch_post(
-            candidates: List[Candidate], api_token: str, graceid: str = None,
-            base: str = "https://treasuremap.space/api/", api_version: str ="v1",
-            verbose = False
-        ) -> List[Candidate]:
-        
-        post_dict = util.non_none_locals(locals=locals())
-
-        batch = []
-        for p in candidates:
-            if not isinstance(p, Candidate):
-                raise Exception("Input candidate must be a list of Candidate")
-            p.discovery_date = p.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
-            batch.append(p.__dict__)
-        
+    def batch_post(candidates: List[Candidate], graceid: str = None,
+                   verbose=False, api_token: str = None) -> List[Candidate]:
+        if api_token:
+            transport.configure(api_token=api_token)
         if graceid is None:
-            graceids = list(set([x.graceid for x in candidates]))
-            if len(graceids) > 1:
-                raise Exception("You can only post candidates for a single GW Event graceid at a time")
-            post_dict["graceid"] = graceids[0]
-
-        post_dict['candidates'] = batch
-
-        r_json = {
-            "d_json":post_dict
-        }
-
-        api = baseapi.api(target="candidate")
-        req = api._post(r_json=r_json)
-
-        if req.status_code == 200:
-            request_json = json.loads(req.text)
-            ids = request_json["candidate_ids"]
-            if verbose:
-                print(request_json)
-            return Candidate.get(api_token=api_token, ids=ids)
-        else:
-            raise Exception(f"Error in Candidate.post(). Request: {req.text[0:1000]}")
-
+            graceids = list(set(c.graceid for c in candidates if c.graceid))
+            if len(graceids) != 1:
+                raise Exception("All candidates must share a single graceid, or provide it explicitly")
+            graceid = graceids[0]
+        result = transport.post('/candidate', json={
+            'graceid': graceid,
+            'candidates': [c._to_dict() for c in candidates],
+        })
+        if verbose:
+            print(result)
+        return Candidate.get(ids=result['candidate_ids'])
 
     @staticmethod
-    def get(
-        api_token: str, graceid: str = None, id: int = None, ids: List[int] = None,
-        submitted_date_after: datetime.datetime = None, submitted_date_before: datetime.datetime = None,
-        discovery_date_after: datetime.datetime = None, discovery_date_before: datetime.datetime = None,
-        userid: int =  None, discovery_magnitude_gt: float = None, discovery_magnitude_lt: float = None,
-        associated_galaxy_redshift_gt: float = None, associated_galaxy_redshift_lt: float = None, 
-        associated_galaxy_distance_gt: float = None, associated_galaxy_distance_lt: float = None, 
-        associated_galaxy_name: str = None, 
-        urlencode=False, base: str = "https://treasuremap.space/api/", api_version: str ="v1"
-    ) -> list[Candidate]:
-        
-        get_dict = util.non_none_locals(locals=locals())
-        
-        r_json = {
-            "d_json":get_dict
-        }
+    def get(graceid: str = None, id: int = None, ids: List[int] = None,
+            submitted_date_after: datetime.datetime = None,
+            submitted_date_before: datetime.datetime = None,
+            discovery_date_after: datetime.datetime = None,
+            discovery_date_before: datetime.datetime = None,
+            userid: int = None,
+            discovery_magnitude_gt: float = None,
+            discovery_magnitude_lt: float = None,
+            associated_galaxy_redshift_gt: float = None,
+            associated_galaxy_redshift_lt: float = None,
+            associated_galaxy_distance_gt: float = None,
+            associated_galaxy_distance_lt: float = None,
+            associated_galaxy_name: str = None,
+            urlencode=None,
+            api_token: str = None) -> list[Candidate]:
+        if api_token:
+            transport.configure(api_token=api_token)
+        result = transport.get('/candidate', params={
+            'graceid': graceid,
+            'id': id,
+            'ids': _encode_list_param(ids),
+            'userid': userid,
+            'submitted_date_after': submitted_date_after,
+            'submitted_date_before': submitted_date_before,
+            'discovery_date_after': discovery_date_after,
+            'discovery_date_before': discovery_date_before,
+            'discovery_magnitude_gt': discovery_magnitude_gt,
+            'discovery_magnitude_lt': discovery_magnitude_lt,
+            'associated_galaxy_name': associated_galaxy_name,
+            'associated_galaxy_redshift_gt': associated_galaxy_redshift_gt,
+            'associated_galaxy_redshift_lt': associated_galaxy_redshift_lt,
+            'associated_galaxy_distance_gt': associated_galaxy_distance_gt,
+            'associated_galaxy_distance_lt': associated_galaxy_distance_lt,
+        })
+        if not isinstance(result, list):
+            raise Exception("Error in Candidate.get(): unexpected response from server")
+        return [Candidate(kwdict=c) for c in result]
 
-        api = baseapi.api(target="candidate", base=base, api_version=api_version)
-        req = api._get(r_json=r_json, urlencode=urlencode)
-
-        if req.status_code == 200:
-            ret = []
-            request_json = json.loads(req.text)
-            for p in request_json:
-                if 'v0' in api.base:
-                    json_value = json.loads(p)
-                else:
-                    json_value = p
-                ret.append(Candidate(kwdict=json_value))
-            return ret
-        else:
-            raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")
-    
-
-    def put(
-            self, api_token: str, payload: dict = None, base: str = "https://treasuremap.space/api/", 
-            api_version: str ="v1", verbose: bool = False
-        ):
-        '''
-            Candidate PUT endpoint
-        '''
-        if payload:
-            if "id" in payload.keys() and isinstance(payload["id"], int):
-                self.id = payload["id"]
-        else:
-            payload = self.__dict__
+    def put(self, payload: dict = None, verbose: bool = False,
+            api_token: str = None):
+        if api_token:
+            transport.configure(api_token=api_token)
         if not self.id:
             raise Exception("Candidate does not have an id")
-        
-        if self.discovery_date:
-            self.discovery_date = self.discovery_date.strftime("%Y-%m-%dT%H:%M:%S.%f")
-        if self.datecreated:
-            self.datecreated = self.datecreated.strftime("%Y-%m-%dT%H:%M:%S.%f")
+        candidate_data = payload.copy() if payload is not None else self._to_dict()
+        candidate_data.pop('id', None)
+        result = transport.put('/candidate', json={'id': self.id, 'candidate': candidate_data})
+        if verbose:
+            print(result)
+        fetched = Candidate.get(id=self.id)
+        self.__init__(kwdict=fetched[0].__dict__)
 
-        put_dict = {
-            "api_token": api_token,
-            "id": self.id,
-            "payload": payload
-        }
-
-        r_json = {
-            "d_json": put_dict
-        }
-
-        api = baseapi.api(target="candidate", base=base, api_version=api_version)
-        req = api._put(r_json=r_json)
-        if req.status_code == 200:
-            request_json = json.loads(req.text)
-            if verbose:
-                print(request_json)
-            self.__init__(kwdict=Candidate.get(api_token=api_token, id=self.id)[0].__dict__)
-        else:
-            raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")
-
-
-    def delete(
-            self, api_token: str, base: str = "https://treasuremap.space/api/", 
-            api_version: str ="v1", verbose: bool =False
-        ) -> dict:
-        '''
-            Candidate DELETE endpoint
-        '''
+    def delete(self, verbose: bool = False, api_token: str = None) -> dict:
+        if api_token:
+            transport.configure(api_token=api_token)
         if not self.id:
             raise Exception("Candidate does not have an id")
-        
-        del_dict = {
-            "api_token": api_token,
-            "id": self.id
-        }
-        r_json = {
-            "d_json": del_dict
-        }
+        result = transport.delete('/candidate', json={'id': self.id})
+        if verbose:
+            print(result)
+        return result
 
-        api = baseapi.api(target="candidate", base=base, api_version=api_version)
-        req = api._delete(r_json=r_json)
-        if req.status_code == 200:
-            request_json = json.loads(req.text)
-            if verbose:
-                print(request_json)
-            return request_json
-        else:
-            raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")
-    
     @staticmethod
-    def batch_delete(
-            api_token: str, ids: List[int], base: str = "https://treasuremap.space/api/", api_version: str ="v1",
-            verbose: bool = False
-        ) -> dict:
-        '''
-            Canididates DELETE endpoint
-        '''
-        del_dict = {
-            "api_token": api_token,
-            "ids": ids
-        }
-        r_json = {
-            "d_json": del_dict
-        }
-
-        api = baseapi.api(target="candidate", base=base, api_version=api_version)
-        req = api._delete(r_json=r_json)
-        if req.status_code == 200:
-            request_json = json.loads(req.text)
-            if verbose:
-                print(request_json)
-            return request_json
-        else:
-            raise Exception(f"Error in Candidate.get(). Request: {req.text[0:1000]}")
+    def batch_delete(ids: List[int], verbose: bool = False,
+                     api_token: str = None) -> dict:
+        if api_token:
+            transport.configure(api_token=api_token)
+        result = transport.delete('/candidate', json={'ids': ids})
+        if verbose:
+            print(result)
+        return result
