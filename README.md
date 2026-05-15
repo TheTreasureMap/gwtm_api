@@ -18,6 +18,8 @@ conda activate gwtm_api
 pip install gwtm_api
 ```
 
+> **Note:** This package requires Python < 3.12 due to upstream dependencies (`ligo.skymap`, `healpy`). Use Python 3.10 or 3.11.
+
 Full API documentation and parameter reference is available at [https://treasuremap.space/docs](https://treasuremap.space/docs).
 
 ---
@@ -106,6 +108,63 @@ batch = [
 ]
 gwtm_api.Pointing.batch_post(pointings=batch, graceid='GRACEID')
 ```
+
+### Request DOI
+
+Request a Digital Object Identifier (DOI) for one or more pointings:
+
+```python
+import gwtm_api
+
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
+
+# By graceid — mints a DOI for all your pointings on the event
+doi_url = gwtm_api.Pointing.request_doi(graceid='GW190814')
+
+# Or for specific pointing IDs
+doi_url = gwtm_api.Pointing.request_doi(
+    ids=[123, 456],
+    creators=[{'name': 'Jane Smith', 'affiliation': 'MIT'}],
+)
+print(doi_url)
+```
+
+---
+
+## Alerts
+
+Retrieve alert metadata for a GW event:
+
+```python
+import gwtm_api
+
+gwtm_api.configure(api_token='YOUR_API_TOKEN')
+
+# Most recent alert for an event
+alert = gwtm_api.Alert.get(graceid='GW190814')
+print(alert.distance, alert.prob_bns, alert.area_90)
+
+# All alerts for an event (there may be multiple updates)
+alerts = gwtm_api.Alert.get_all(graceid='GW190814')
+```
+
+### Skymap contours
+
+Fetch the 50%/90% credible region contours as GeoJSON polygon coordinates:
+
+```python
+contours = gwtm_api.Alert.fetch_contours(graceid='GW190814', cache=True)
+```
+
+### Skymap FITS
+
+Download the HEALPix probability map as a numpy array (via healpy):
+
+```python
+skymap = gwtm_api.Alert.fetch_skymap(graceid='GW190814', cache=True)
+```
+
+Pass `cache=True` to any of the above to avoid re-downloading on repeated calls.
 
 ---
 
@@ -256,6 +315,18 @@ renormalized_skymap = gwtm_api.event_tools.renormalize_skymap(
 )
 ```
 
+### Renormalized skymap contours
+
+Compute 50%/90% credible region contours on the renormalized skymap (i.e. with observed regions zeroed out). Returns a GeoJSON string:
+
+```python
+contours_json = gwtm_api.event_tools.renormed_skymap_contours(
+    graceid='GW190814',
+    pointings=pointings,
+    cache=True
+)
+```
+
 ### Candidate coverage
 
 Find which instrument pointings overlap with a candidate's position:
@@ -272,6 +343,7 @@ covering_pointings = gwtm_api.event_tools.candidate_coverage(candidate=my_candid
 The package has a simple two-layer architecture:
 
 - **`src/gwtm_api/{pointing,alert,instrument,candidate}.py`** — hand-written, user-facing classes with a stable, friendly interface
+- **`src/gwtm_api/event_tools.py`** — analytics functions (coverage, skymap renormalization, contours)
 - **`src/gwtm_api/core/_client_factory.py`** — thin httpx transport layer; configured once via `gwtm_api.configure()`
 
 ### Setup after cloning
