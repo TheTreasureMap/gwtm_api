@@ -225,6 +225,50 @@ class Pointing(apimodels._Table):
         })
         return [Pointing(kwdict=p) for p in result]
 
+    def update(self,
+               status: apimodels.pointing_status = None,
+               time: datetime.datetime = None,
+               depth: float = None,
+               depth_err: float = None,
+               depth_unit: apimodels.depth_unit = None,
+               band: apimodels.bandpass = None,
+               pos_angle: float = None,
+               ra: float = None,
+               dec: float = None,
+               central_wave: float = None,
+               bandwidth: float = None,
+               api_token: str = None):
+        """Update fields on this pointing via PUT /pointings/{id}."""
+        if api_token:
+            transport.configure(api_token=api_token)
+        if self.id is None:
+            raise Exception("Cannot update a pointing with no id")
+        payload = util.non_none_locals(locals=locals())
+        payload = {k: (_enum_name(v) if hasattr(v, 'name') else
+                       v.isoformat() if isinstance(v, datetime.datetime) else v)
+                   for k, v in payload.items()}
+        transport.put(f'/pointings/{self.id}', json=payload)
+        refreshed = Pointing.get(id=self.id)
+        if refreshed:
+            self.__init__(kwdict=refreshed[0].__dict__)
+
+    def delete(self, api_token: str = None):
+        """Delete this pointing via DELETE /pointings."""
+        if api_token:
+            transport.configure(api_token=api_token)
+        if self.id is None:
+            raise Exception("Cannot delete a pointing with no id")
+        Pointing.batch_delete(ids=[self.id], api_token=api_token)
+
+    @staticmethod
+    def batch_delete(ids: List[int], api_token: str = None):
+        """Delete multiple pointings by ID via DELETE /pointings."""
+        if api_token:
+            transport.configure(api_token=api_token)
+        if not ids:
+            raise Exception("ids must be a non-empty list")
+        transport.delete('/pointings', json={'ids': ids})
+
     @staticmethod
     def request_doi(graceid: str = None, id: int = None,
                     ids: List[int] = None, creators: dict = None,

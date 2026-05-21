@@ -18,6 +18,8 @@ POINTING_FIXTURE = {
 
 GET_PATH = 'gwtm_api.core._client_factory.get'
 POST_PATH = 'gwtm_api.core._client_factory.post'
+PUT_PATH = 'gwtm_api.core._client_factory.put'
+DELETE_PATH = 'gwtm_api.core._client_factory.delete'
 
 
 class TestPointingGet:
@@ -181,3 +183,94 @@ class TestRequestDoi:
             gwtm_api.Pointing.request_doi(graceid='S190425z', doi_group_id='42')
         body = mock.call_args.kwargs['json']
         assert isinstance(body['doi_group_id'], str)
+
+
+class TestPointingUpdate:
+
+    def _make_pointing(self):
+        with patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            return gwtm_api.Pointing.get(id=42)[0]
+
+    def test_update_calls_put_endpoint(self):
+        p = self._make_pointing()
+        with patch(PUT_PATH, return_value={'message': 'ok'}) as mock_put, \
+             patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            p.update(status='cancelled')
+        assert mock_put.call_args.args[0] == '/pointings/42'
+
+    def test_update_sends_only_provided_fields(self):
+        p = self._make_pointing()
+        with patch(PUT_PATH, return_value={'message': 'ok'}) as mock_put, \
+             patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            p.update(depth=22.5)
+        body = mock_put.call_args.kwargs['json']
+        assert body['depth'] == 22.5
+        assert 'status' not in body
+        assert 'band' not in body
+
+    def test_update_serialises_enum_to_name(self):
+        import gwtm_api.core.apimodels as m
+        p = self._make_pointing()
+        with patch(PUT_PATH, return_value={'message': 'ok'}) as mock_put, \
+             patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            p.update(status=m.pointing_status.cancelled)
+        body = mock_put.call_args.kwargs['json']
+        assert body['status'] == 'cancelled'
+
+    def test_update_serialises_datetime_to_isoformat(self):
+        p = self._make_pointing()
+        t = datetime.datetime(2025, 6, 1, 12, 0, 0)
+        with patch(PUT_PATH, return_value={'message': 'ok'}) as mock_put, \
+             patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            p.update(time=t)
+        body = mock_put.call_args.kwargs['json']
+        assert body['time'] == '2025-06-01T12:00:00'
+
+    def test_update_refreshes_self_from_get(self):
+        p = self._make_pointing()
+        updated = {**POINTING_FIXTURE, 'depth': 22.5}
+        with patch(PUT_PATH, return_value={'message': 'ok'}), \
+             patch(GET_PATH, return_value=[updated]):
+            p.update(depth=22.5)
+        assert p.depth == 22.5
+
+    def test_update_raises_without_id(self):
+        p = self._make_pointing()
+        p.id = None
+        with pytest.raises(Exception, match="no id"):
+            p.update(status='cancelled')
+
+
+class TestPointingDelete:
+
+    def _make_pointing(self):
+        with patch(GET_PATH, return_value=[POINTING_FIXTURE]):
+            return gwtm_api.Pointing.get(id=42)[0]
+
+    def test_delete_calls_delete_endpoint(self):
+        p = self._make_pointing()
+        with patch(DELETE_PATH, return_value={'message': 'ok'}) as mock_del:
+            p.delete()
+        assert mock_del.call_args.args[0] == '/pointings'
+
+    def test_delete_sends_own_id(self):
+        p = self._make_pointing()
+        with patch(DELETE_PATH, return_value={'message': 'ok'}) as mock_del:
+            p.delete()
+        assert mock_del.call_args.kwargs['json'] == {'ids': [42]}
+
+    def test_delete_raises_without_id(self):
+        p = self._make_pointing()
+        p.id = None
+        with pytest.raises(Exception, match="no id"):
+            p.delete()
+
+    def test_batch_delete_calls_delete_endpoint(self):
+        with patch(DELETE_PATH, return_value={'message': 'ok'}) as mock_del:
+            gwtm_api.Pointing.batch_delete(ids=[1, 2, 3])
+        assert mock_del.call_args.args[0] == '/pointings'
+        assert mock_del.call_args.kwargs['json'] == {'ids': [1, 2, 3]}
+
+    def test_batch_delete_raises_on_empty_list(self):
+        with pytest.raises(Exception):
+            gwtm_api.Pointing.batch_delete(ids=[])
